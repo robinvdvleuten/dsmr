@@ -71,8 +71,7 @@ To get started with development:
 ```
 git clone https://github.com/mijnverbruik/dsmr.git
 cd dsmr
-bundle install
-go test .
+go test ./...
 ```
 
 Feel free to open an issue to get feedback on your idea before spending too much time on it.
