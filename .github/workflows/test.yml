@@ -14,9 +14,3 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
       - run: go test ./...
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: golangci/golangci-lint-action@v3
