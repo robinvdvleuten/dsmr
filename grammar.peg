@@ -13,9 +13,11 @@ Telegram <-
     Footer 
     EOF
 
-Header <- < '/' ( !EOL . )+ > EOL+ { p.t.Header = text }
+Header 
+    <- < '/' ( !EOL . )+ > EOL+ { p.t.Header = text }
 
-COSEM <- OBIS
+COSEM 
+    <- OBIS
     {
         p.c = &COSEM{OBIS: p.o}
         p.a = nil
@@ -25,18 +27,22 @@ COSEM <- OBIS
         p.t.COSEM[p.c.OBIS.Value] = p.c
     }
 
-Footer <- '!' < ( !EOL . )* > EOL { p.t.Checksum = text }
+Footer 
+    <- '!' < ( !EOL . )* > EOL { p.t.Checksum = text }
 
-OBIS <- < Number '-' Number ':' Number '.' Number '.' Number > { p.o = &OBIS{Value: text} }
+OBIS 
+    <- < Number '-' Number ':' Number '.' Number '.' Number > { p.o = &OBIS{Value: text} }
 
-Attribute <- '(' ( Measurement / Timestamp / Text )* ')' EOL?
+Attribute 
+    <- '(' ( Measurement / Timestamp / Text )* ')' EOL?
     {
         if p.a != nil {
             p.c.Attribute = append(p.c.Attribute, p.a)
         }
     }
 
-Measurement <- < ( Number / '.' )+ > '*'
+Measurement 
+    <- < ( Number / '.' )+ > '*'
     { 
         p.a = &Measurement{Value: text}
     }
@@ -45,12 +51,17 @@ Measurement <- < ( Number / '.' )+ > '*'
         p.a.(*Measurement).Unit = text
     }
 
-Text <- < ( !')' . )+ > { p.a = &Text{Value: text} }
+Text 
+    <- < ( !')' . )+ > { p.a = &Text{Value: text} }
 
-Timestamp <- < Number ( 'S' / 'W' ) > { p.a = &Timestamp{Value: text} }
+Timestamp 
+    <- < Number ( 'S' / 'W' ) > { p.a = &Timestamp{Value: text} }
 
-Number <- [0-9]+
+Number 
+    <- [0-9]+
 
-EOL <- '\r\n'
+EOL 
+    <- '\r\n'
 
-EOF <- !.
+EOF 
+    <- !.
