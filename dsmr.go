@@ -5,17 +5,20 @@ import (
 	"strings"
 )
 
-// Parse a DSRM telegram.
-func Parse(r io.Reader) (*Telegram, error) {
+// Option function.
+type Option func(*parser)
+
+func Parse(r io.Reader, options ...Option) (*Telegram, error) {
 	buf := &strings.Builder{}
 	if _, err := io.Copy(buf, r); err != nil {
 		return nil, err
 	}
 
-	return ParseString(buf.String())
+	return ParseString(buf.String(), options...)
 }
 
-func ParseString(s string) (*Telegram, error) {
+// Parse a DSRM telegram.
+func ParseString(s string, options ...Option) (*Telegram, error) {
 	t := &Telegram{
 		COSEM: map[string]*COSEM{},
 	}
@@ -23,6 +26,10 @@ func ParseString(s string) (*Telegram, error) {
 	p := &parser{
 		Buffer: s,
 		t:      t,
+	}
+
+	for _, o := range options {
+		o(p)
 	}
 
 	if err := p.Init(); err != nil {
