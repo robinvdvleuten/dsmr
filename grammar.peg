@@ -26,7 +26,7 @@ COSEM <- OBIS
         p.t.COSEM = append(p.t.COSEM, p.c)
     }
 
-Footer <- '!' < ( !EOL . )* >) EOL { p.t.Checksum = text }
+Footer <- '!' < ( !EOL . )* > EOL { p.t.Checksum = text }
 
 OBIS <- < Number '-' Number ':' Number '.' Number '.' Number > { p.o = &OBIS{Value: text} }
 

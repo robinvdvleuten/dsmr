@@ -1423,28 +1423,28 @@ func (p *parser) Init(options ...func(*parser) error) error {
 						goto l0
 					}
 					position++
-				l172:
 					{
-						position173, tokenIndex173 := position, tokenIndex
+						position172 := position
+					l173:
 						{
-							position174 := position
+							position174, tokenIndex174 := position, tokenIndex
 							{
 								position175, tokenIndex175 := position, tokenIndex
 								if !_rules[ruleEOL]() {
 									goto l175
 								}
-								goto l173
+								goto l174
 							l175:
 								position, tokenIndex = position175, tokenIndex175
 							}
 							if !matchDot() {
-								goto l173
+								goto l174
 							}
-							add(rulePegText, position174)
+							goto l173
+						l174:
+							position, tokenIndex = position174, tokenIndex174
 						}
-						goto l172
-					l173:
-						position, tokenIndex = position173, tokenIndex173
+						add(rulePegText, position172)
 					}
 					if !_rules[ruleEOL]() {
 						goto l0
@@ -1478,7 +1478,7 @@ func (p *parser) Init(options ...func(*parser) error) error {
 		nil,
 		/* 2 COSEM <- <(OBIS Action1 Attribute+ Action2)> */
 		nil,
-		/* 3 Footer <- <('!' <(!EOL .)>* EOL Action3)> */
+		/* 3 Footer <- <('!' <(!EOL .)*> EOL Action3)> */
 		nil,
 		/* 4 OBIS <- <(<(Number '-' Number ':' Number '.' Number '.' Number)> Action4)> */
 		nil,
