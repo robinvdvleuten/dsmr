@@ -1,10 +1,13 @@
 package dsmr
 
+import "time"
+
 type parser Peg {
     t *Telegram
     o *OBIS
     c *COSEM
     a Attribute
+    tz *time.Location
 }
 
 Telegram <- 
@@ -17,15 +20,8 @@ Header
     <- < '/' ( !EOL . )+ > EOL+ { p.t.Header = text }
 
 COSEM 
-    <- OBIS
-    {
-        p.c = &COSEM{OBIS: p.o}
-        p.a = nil
-    }
-    Attribute+
-    {
-        p.t.COSEM[p.c.OBIS.Value] = p.c
-    }
+    <- OBIS { p.c = &COSEM{OBIS: p.o}; p.a = nil }
+    Attribute+ { p.t.COSEM[p.c.OBIS.Value] = p.c }
 
 Footer 
     <- '!' < ( !EOL . )* > EOL { p.t.Checksum = text }
@@ -42,20 +38,14 @@ Attribute
     }
 
 Measurement 
-    <- < ( Number / '.' )+ > '*'
-    { 
-        p.a = &Measurement{Value: text}
-    }
-    < ( !')' . )+ >
-    {
-        p.a.(*Measurement).Unit = text
-    }
+    <- < ( Number / '.' )+ > '*' { n, _ := strconv.ParseFloat(text, 32); p.a = &Measurement{Value: n} }
+    < ( !')' . )+ > { p.a.(*Measurement).Unit = text }
 
 Text 
     <- < ( !')' . )+ > { p.a = &Text{Value: text} }
 
 Timestamp 
-    <- < Number ( 'S' / 'W' ) > { p.a = &Timestamp{Value: text} }
+    <- < Number > ( 'S' / 'W' ) { t, _ := time.ParseInLocation("060102150405", text, p.tz); p.a = &Timestamp{Value: t.UTC()} }
 
 Number 
     <- [0-9]+

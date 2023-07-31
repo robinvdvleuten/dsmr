@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const endSymbol rune = 1114112
@@ -180,10 +181,11 @@ func (t *tokens32) Tokens() []token32 {
 }
 
 type parser struct {
-	t *Telegram
-	o *OBIS
-	c *COSEM
-	a Attribute
+	t  *Telegram
+	o  *OBIS
+	c  *COSEM
+	a  Attribute
+	tz *time.Location
 
 	Buffer string
 	buffer []rune
@@ -292,14 +294,10 @@ func (p *parser) Execute() {
 		case ruleAction0:
 			p.t.Header = text
 		case ruleAction1:
-
 			p.c = &COSEM{OBIS: p.o}
 			p.a = nil
-
 		case ruleAction2:
-
 			p.t.COSEM[p.c.OBIS.Value] = p.c
-
 		case ruleAction3:
 			p.t.Checksum = text
 		case ruleAction4:
@@ -311,17 +309,15 @@ func (p *parser) Execute() {
 			}
 
 		case ruleAction6:
-
-			p.a = &Measurement{Value: text}
-
+			n, _ := strconv.ParseFloat(text, 32)
+			p.a = &Measurement{Value: n}
 		case ruleAction7:
-
 			p.a.(*Measurement).Unit = text
-
 		case ruleAction8:
 			p.a = &Text{Value: text}
 		case ruleAction9:
-			p.a = &Timestamp{Value: text}
+			t, _ := time.ParseInLocation("060102150405", text, p.tz)
+			p.a = &Timestamp{Value: t.UTC()}
 
 		}
 	}
@@ -637,23 +633,23 @@ func (p *parser) Init(options ...func(*parser) error) error {
 										if !_rules[ruleNumber]() {
 											goto l40
 										}
-										{
-											position43, tokenIndex43 := position, tokenIndex
-											if buffer[position] != rune('S') {
-												goto l44
-											}
-											position++
-											goto l43
-										l44:
-											position, tokenIndex = position43, tokenIndex43
-											if buffer[position] != rune('W') {
-												goto l40
-											}
-											position++
-										}
-									l43:
 										add(rulePegText, position42)
 									}
+									{
+										position43, tokenIndex43 := position, tokenIndex
+										if buffer[position] != rune('S') {
+											goto l44
+										}
+										position++
+										goto l43
+									l44:
+										position, tokenIndex = position43, tokenIndex43
+										if buffer[position] != rune('W') {
+											goto l40
+										}
+										position++
+									}
+								l43:
 									{
 										add(ruleAction9, position)
 									}
@@ -845,23 +841,23 @@ func (p *parser) Init(options ...func(*parser) error) error {
 											if !_rules[ruleNumber]() {
 												goto l76
 											}
-											{
-												position79, tokenIndex79 := position, tokenIndex
-												if buffer[position] != rune('S') {
-													goto l80
-												}
-												position++
-												goto l79
-											l80:
-												position, tokenIndex = position79, tokenIndex79
-												if buffer[position] != rune('W') {
-													goto l76
-												}
-												position++
-											}
-										l79:
 											add(rulePegText, position78)
 										}
+										{
+											position79, tokenIndex79 := position, tokenIndex
+											if buffer[position] != rune('S') {
+												goto l80
+											}
+											position++
+											goto l79
+										l80:
+											position, tokenIndex = position79, tokenIndex79
+											if buffer[position] != rune('W') {
+												goto l76
+											}
+											position++
+										}
+									l79:
 										{
 											add(ruleAction9, position)
 										}
@@ -1109,23 +1105,23 @@ func (p *parser) Init(options ...func(*parser) error) error {
 											if !_rules[ruleNumber]() {
 												goto l120
 											}
-											{
-												position123, tokenIndex123 := position, tokenIndex
-												if buffer[position] != rune('S') {
-													goto l124
-												}
-												position++
-												goto l123
-											l124:
-												position, tokenIndex = position123, tokenIndex123
-												if buffer[position] != rune('W') {
-													goto l120
-												}
-												position++
-											}
-										l123:
 											add(rulePegText, position122)
 										}
+										{
+											position123, tokenIndex123 := position, tokenIndex
+											if buffer[position] != rune('S') {
+												goto l124
+											}
+											position++
+											goto l123
+										l124:
+											position, tokenIndex = position123, tokenIndex123
+											if buffer[position] != rune('W') {
+												goto l120
+											}
+											position++
+										}
+									l123:
 										{
 											add(ruleAction9, position)
 										}
@@ -1317,23 +1313,23 @@ func (p *parser) Init(options ...func(*parser) error) error {
 												if !_rules[ruleNumber]() {
 													goto l156
 												}
-												{
-													position159, tokenIndex159 := position, tokenIndex
-													if buffer[position] != rune('S') {
-														goto l160
-													}
-													position++
-													goto l159
-												l160:
-													position, tokenIndex = position159, tokenIndex159
-													if buffer[position] != rune('W') {
-														goto l156
-													}
-													position++
-												}
-											l159:
 												add(rulePegText, position158)
 											}
+											{
+												position159, tokenIndex159 := position, tokenIndex
+												if buffer[position] != rune('S') {
+													goto l160
+												}
+												position++
+												goto l159
+											l160:
+												position, tokenIndex = position159, tokenIndex159
+												if buffer[position] != rune('W') {
+													goto l156
+												}
+												position++
+											}
+										l159:
 											{
 												add(ruleAction9, position)
 											}
@@ -1495,7 +1491,7 @@ func (p *parser) Init(options ...func(*parser) error) error {
 		nil,
 		/* 7 Text <- <(<(!')' .)+> Action8)> */
 		nil,
-		/* 8 Timestamp <- <(<(Number ('S' / 'W'))> Action9)> */
+		/* 8 Timestamp <- <(<Number> ('S' / 'W') Action9)> */
 		nil,
 		/* 9 Number <- <[0-9]+> */
 		func() bool {
@@ -1549,14 +1545,9 @@ func (p *parser) Init(options ...func(*parser) error) error {
 		nil,
 		/* 14 Action0 <- <{ p.t.Header = text }> */
 		nil,
-		/* 15 Action1 <- <{
-		    p.c = &COSEM{OBIS: p.o}
-		    p.a = nil
-		}> */
+		/* 15 Action1 <- <{ p.c = &COSEM{OBIS: p.o}; p.a = nil }> */
 		nil,
-		/* 16 Action2 <- <{
-		    p.t.COSEM[p.c.OBIS.Value] = p.c
-		}> */
+		/* 16 Action2 <- <{ p.t.COSEM[p.c.OBIS.Value] = p.c }> */
 		nil,
 		/* 17 Action3 <- <{ p.t.Checksum = text }> */
 		nil,
@@ -1568,17 +1559,13 @@ func (p *parser) Init(options ...func(*parser) error) error {
 		    }
 		}> */
 		nil,
-		/* 20 Action6 <- <{
-		    p.a = &Measurement{Value: text}
-		}> */
+		/* 20 Action6 <- <{ n, _ := strconv.ParseFloat(text, 32); p.a = &Measurement{Value: n} }> */
 		nil,
-		/* 21 Action7 <- <{
-		    p.a.(*Measurement).Unit = text
-		}> */
+		/* 21 Action7 <- <{ p.a.(*Measurement).Unit = text }> */
 		nil,
 		/* 22 Action8 <- <{ p.a = &Text{Value: text} }> */
 		nil,
-		/* 23 Action9 <- <{ p.a = &Timestamp{Value: text} }> */
+		/* 23 Action9 <- <{ t, _ := time.ParseInLocation("060102150405", text, p.tz); p.a = &Timestamp{Value: t.UTC()} }> */
 		nil,
 	}
 	p.rules = _rules

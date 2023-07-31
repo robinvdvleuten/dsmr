@@ -2,6 +2,11 @@
 
 package dsmr
 
+import (
+	"fmt"
+	"time"
+)
+
 type Telegram struct {
 	Header   string
 	COSEM    map[string]*COSEM
@@ -13,29 +18,39 @@ type COSEM struct {
 	Attribute []Attribute
 }
 
-type Attribute interface{ value() }
+type Attribute interface {
+	String() string
+}
 
 type Measurement struct {
-	Value string
+	Value float64
 	Unit  string
 }
 
-func (Measurement) value() {}
+func (m *Measurement) String() string {
+	return fmt.Sprintf("%f%s", m.Value, m.Unit)
+}
 
 type OBIS struct {
 	Value string
 }
 
-func (OBIS) value() {}
+func (o *OBIS) String() string {
+	return o.Value
+}
 
 type Text struct {
 	Value string
 }
 
-func (Text) value() {}
-
-type Timestamp struct {
-	Value string
+func (t *Text) String() string {
+	return t.Value
 }
 
-func (Timestamp) value() {}
+type Timestamp struct {
+	Value time.Time
+}
+
+func (t *Timestamp) String() string {
+	return t.Value.Format(time.RFC3339)
+}

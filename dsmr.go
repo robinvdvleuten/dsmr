@@ -3,6 +3,7 @@ package dsmr
 import (
 	"io"
 	"strings"
+	"time"
 )
 
 // Option function.
@@ -17,15 +18,28 @@ func Parse(r io.Reader, options ...Option) (*Telegram, error) {
 	return ParseString(buf.String(), options...)
 }
 
+// WithLocation sets the location used for parsing timestamps.
+// By default the "Europe/Amsterdam" location is used, but can
+// be overriden to handle meters in different timezones.
+func WithLocation(name string) Option {
+	return func(p *parser) {
+		tz, _ := time.LoadLocation(name)
+		p.tz = tz
+	}
+}
+
 // Parse a DSRM telegram.
 func ParseString(s string, options ...Option) (*Telegram, error) {
 	t := &Telegram{
 		COSEM: map[string]*COSEM{},
 	}
 
+	tz, _ := time.LoadLocation("Europe/Amsterdam")
+
 	p := &parser{
 		Buffer: s,
 		t:      t,
+		tz:     tz,
 	}
 
 	for _, o := range options {
