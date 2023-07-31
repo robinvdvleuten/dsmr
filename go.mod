@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
-	github.com/alecthomas/participle/v2 v2.0.0
 	github.com/snksoft/crc v1.1.0
 )
 

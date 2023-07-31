@@ -1,39 +1,41 @@
+//go:generate peg -inline -switch grammar.peg
+
 package dsmr
 
 type Telegram struct {
-	Header   string   `"/" @~Separator+`
-	COSEM    []*COSEM `@@+`
-	Checksum string   `"!" @~Separator*`
+	Header   string
+	COSEM    []*COSEM
+	Checksum string
 }
 
 type COSEM struct {
-	OBIS      *OBIS       `@@`
-	Attribute []Attribute `("(" @@* ")")+`
+	OBIS      *OBIS
+	Attribute []Attribute
 }
 
 type Attribute interface{ value() }
 
 type Measurement struct {
-	Value string `@Number "*"`
-	Unit  string `@~")"+`
+	Value string
+	Unit  string
 }
 
 func (Measurement) value() {}
 
 type OBIS struct {
-	Value string `@OBIS`
+	Value string
 }
 
 func (OBIS) value() {}
 
 type Text struct {
-	Value string `@~")"+`
+	Value string
 }
 
 func (Text) value() {}
 
 type Timestamp struct {
-	Value string `@Timestamp`
+	Value string
 }
 
 func (Timestamp) value() {}
