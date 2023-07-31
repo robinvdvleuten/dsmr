@@ -4,7 +4,7 @@ package dsmr
 
 type Telegram struct {
 	Header   string
-	COSEM    []*COSEM
+	COSEM    map[string]*COSEM
 	Checksum string
 }
 

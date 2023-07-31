@@ -16,9 +16,13 @@ func Parse(r io.Reader) (*Telegram, error) {
 }
 
 func ParseString(s string) (*Telegram, error) {
+	t := &Telegram{
+		COSEM: map[string]*COSEM{},
+	}
+
 	p := &parser{
 		Buffer: s,
-		t:      &Telegram{},
+		t:      t,
 	}
 
 	if err := p.Init(); err != nil {
@@ -31,5 +35,5 @@ func ParseString(s string) (*Telegram, error) {
 
 	p.Execute()
 
-	return p.t, nil
+	return t, nil
 }

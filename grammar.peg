@@ -9,12 +9,11 @@ type parser Peg {
 
 Telegram <- 
     Header 
-    EOL
     COSEM+
     Footer 
     EOF
 
-Header <- < '/' ( !EOL . )+ > EOL { p.t.Header = text }
+Header <- < '/' ( !EOL . )+ > EOL+ { p.t.Header = text }
 
 COSEM <- OBIS
     {
@@ -23,7 +22,7 @@ COSEM <- OBIS
     }
     Attribute+
     {
-        p.t.COSEM = append(p.t.COSEM, p.c)
+        p.t.COSEM[p.c.OBIS.Value] = p.c
     }
 
 Footer <- '!' < ( !EOL . )* > EOL { p.t.Checksum = text }
