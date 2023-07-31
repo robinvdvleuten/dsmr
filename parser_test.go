@@ -155,5 +155,5 @@ func TestTelegramV50(t *testing.T) {
 
 func TestInvalidTelegram(t *testing.T) {
 	_, err := ParseString("invalid_telegram")
-	require.EqualError(t, err, "1:1: unexpected token \"i\"")
+	require.EqualError(t, err, "\nparse error near Unknown (line 1 symbol 1 - line 1 symbol 1):\n\"\"\n")
 }
