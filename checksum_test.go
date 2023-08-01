@@ -13,7 +13,7 @@ func TestValidChecksum(t *testing.T) {
 		"0-0:0.0.0()\r\n" +
 		"!75B7\r\n"
 
-	telegram := &Telegram{Checksum: "75B7"}
+	telegram := &Telegram{checksum: "75B7"}
 
 	err := telegram.check(strings.NewReader(raw))
 	require.NoError(t, err)
@@ -25,7 +25,7 @@ func TestInvalidChecksum(t *testing.T) {
 		"0-0:0.0.0()\r\n" +
 		"!1234\r\n"
 
-	telegram := &Telegram{Checksum: "1234"}
+	telegram := &Telegram{checksum: "1234"}
 
 	err := telegram.check(strings.NewReader(raw))
 	require.EqualError(t, err, "unexpected checksum \"75B7\" (expected \"1234\")")

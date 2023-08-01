@@ -3,54 +3,85 @@
 package dsmr
 
 import (
-	"fmt"
 	"time"
 )
 
 type Telegram struct {
-	Header   string
-	COSEM    map[string]*COSEM
-	Checksum string
+	header   string
+	cosem    map[string]*COSEM
+	checksum string
+}
+
+func (t *Telegram) Header() string {
+	return t.header
+}
+
+func (t *Telegram) Checksum() string {
+	return t.checksum
+}
+
+func (t *Telegram) COSEM(obis string) []Attribute {
+	return t.cosem[obis].attribute
 }
 
 type COSEM struct {
-	OBIS      *OBIS
-	Attribute []Attribute
+	obis      *OBIS
+	attribute []Attribute
+}
+
+func (c *COSEM) OBIS() *OBIS {
+	return c.obis
+}
+
+func (c *COSEM) Attribute() []Attribute {
+	return c.attribute
 }
 
 type Attribute interface {
-	String() string
+	attribute()
 }
 
 type Measurement struct {
-	Value float64
-	Unit  string
+	value float64
+	unit  string
 }
 
-func (m *Measurement) String() string {
-	return fmt.Sprintf("%f%s", m.Value, m.Unit)
+func (m *Measurement) attribute() {}
+
+func (m *Measurement) Value() float64 {
+	return m.value
+}
+
+func (m *Measurement) Unit() string {
+	return m.unit
 }
 
 type OBIS struct {
-	Value string
+	value string
 }
 
-func (o *OBIS) String() string {
-	return o.Value
+func (o *OBIS) attribute() {}
+
+func (o *OBIS) Value() string {
+	return o.value
 }
 
 type Text struct {
-	Value string
+	value string
 }
 
-func (t *Text) String() string {
-	return t.Value
+func (t *Text) attribute() {}
+
+func (t *Text) Value() string {
+	return t.value
 }
 
 type Timestamp struct {
-	Value time.Time
+	value time.Time
 }
 
-func (t *Timestamp) String() string {
-	return t.Value.Format(time.RFC3339)
+func (t *Timestamp) attribute() {}
+
+func (t *Timestamp) Value() time.Time {
+	return t.value
 }

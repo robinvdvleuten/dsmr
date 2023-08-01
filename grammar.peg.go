@@ -292,32 +292,32 @@ func (p *parser) Execute() {
 			text = string(_buffer[begin:end])
 
 		case ruleAction0:
-			p.t.Header = text
+			p.t.header = text
 		case ruleAction1:
-			p.c = &COSEM{OBIS: p.o}
+			p.c = &COSEM{obis: p.o}
 			p.a = nil
 		case ruleAction2:
-			p.t.COSEM[p.c.OBIS.Value] = p.c
+			p.t.cosem[p.c.obis.value] = p.c
 		case ruleAction3:
-			p.t.Checksum = text
+			p.t.checksum = text
 		case ruleAction4:
-			p.o = &OBIS{Value: text}
+			p.o = &OBIS{value: text}
 		case ruleAction5:
 
 			if p.a != nil {
-				p.c.Attribute = append(p.c.Attribute, p.a)
+				p.c.attribute = append(p.c.attribute, p.a)
 			}
 
 		case ruleAction6:
 			n, _ := strconv.ParseFloat(text, 32)
-			p.a = &Measurement{Value: n}
+			p.a = &Measurement{value: n}
 		case ruleAction7:
-			p.a.(*Measurement).Unit = text
+			p.a.(*Measurement).unit = text
 		case ruleAction8:
-			p.a = &Text{Value: text}
+			p.a = &Text{value: text}
 		case ruleAction9:
 			t, _ := time.ParseInLocation("060102150405", text, p.tz)
-			p.a = &Timestamp{Value: t.UTC()}
+			p.a = &Timestamp{value: t.UTC()}
 
 		}
 	}
@@ -1543,29 +1543,29 @@ func (p *parser) Init(options ...func(*parser) error) error {
 		/* 11 EOF <- <!.> */
 		nil,
 		nil,
-		/* 14 Action0 <- <{ p.t.Header = text }> */
+		/* 14 Action0 <- <{ p.t.header = text }> */
 		nil,
-		/* 15 Action1 <- <{ p.c = &COSEM{OBIS: p.o}; p.a = nil }> */
+		/* 15 Action1 <- <{ p.c = &COSEM{obis: p.o}; p.a = nil }> */
 		nil,
-		/* 16 Action2 <- <{ p.t.COSEM[p.c.OBIS.Value] = p.c }> */
+		/* 16 Action2 <- <{ p.t.cosem[p.c.obis.value] = p.c }> */
 		nil,
-		/* 17 Action3 <- <{ p.t.Checksum = text }> */
+		/* 17 Action3 <- <{ p.t.checksum = text }> */
 		nil,
-		/* 18 Action4 <- <{ p.o = &OBIS{Value: text} }> */
+		/* 18 Action4 <- <{ p.o = &OBIS{value: text} }> */
 		nil,
 		/* 19 Action5 <- <{
 		    if p.a != nil {
-		        p.c.Attribute = append(p.c.Attribute, p.a)
+		        p.c.attribute = append(p.c.attribute, p.a)
 		    }
 		}> */
 		nil,
-		/* 20 Action6 <- <{ n, _ := strconv.ParseFloat(text, 32); p.a = &Measurement{Value: n} }> */
+		/* 20 Action6 <- <{ n, _ := strconv.ParseFloat(text, 32); p.a = &Measurement{value: n} }> */
 		nil,
-		/* 21 Action7 <- <{ p.a.(*Measurement).Unit = text }> */
+		/* 21 Action7 <- <{ p.a.(*Measurement).unit = text }> */
 		nil,
-		/* 22 Action8 <- <{ p.a = &Text{Value: text} }> */
+		/* 22 Action8 <- <{ p.a = &Text{value: text} }> */
 		nil,
-		/* 23 Action9 <- <{ t, _ := time.ParseInLocation("060102150405", text, p.tz); p.a = &Timestamp{Value: t.UTC()} }> */
+		/* 23 Action9 <- <{ t, _ := time.ParseInLocation("060102150405", text, p.tz); p.a = &Timestamp{value: t.UTC()} }> */
 		nil,
 	}
 	p.rules = _rules

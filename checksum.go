@@ -10,7 +10,7 @@ import (
 
 func (t *Telegram) check(r io.Reader) error {
 	// Only check checksum if we found one while parsing.
-	if t.Checksum == "" {
+	if t.checksum == "" {
 		return nil
 	}
 
@@ -23,8 +23,8 @@ func (t *Telegram) check(r io.Reader) error {
 	msg := strings.Split(string(b), "!")[0] + "!"
 	checksum := fmt.Sprintf("%04X", crc.CalculateCRC(crc.CRC16, []byte(msg)))
 
-	if t.Checksum != checksum {
-		return &ChecksumError{Unexpected: checksum, Expect: t.Checksum}
+	if t.checksum != checksum {
+		return &ChecksumError{Unexpected: checksum, Expect: t.checksum}
 	}
 
 	return nil

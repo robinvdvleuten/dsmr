@@ -29,8 +29,13 @@ func TestTelegramV22(t *testing.T) {
 		"0-1:24.4.0(1)\r\n" +
 		"!\r\n"
 
-	_, err := ParseString(raw)
+	telegram, err := ParseString(raw)
 	require.NoError(t, err)
+
+	require.Equal(t, "/ISk5\\2MT382-1004", telegram.Header())
+	require.Equal(t, "", telegram.Checksum())
+	require.Equal(t, []Attribute{&Text{value: "00000000000000"}}, telegram.COSEM("0-0:96.1.1"))
+	require.Equal(t, []Attribute{&Measurement{value: 1.01, unit: "kW"}}, telegram.COSEM("1-0:1.7.0"))
 }
 
 func TestTelegramV30(t *testing.T) {
@@ -58,8 +63,13 @@ func TestTelegramV30(t *testing.T) {
 		"0-1:24.4.0(1)\r\n" +
 		"!\r\n"
 
-	_, err := ParseString(raw)
+	telegram, err := ParseString(raw)
 	require.NoError(t, err)
+
+	require.Equal(t, "/ISk5\\2MT382-1000", telegram.Header())
+	require.Equal(t, "", telegram.Checksum())
+	require.Equal(t, []Attribute{&Text{value: "303132333435363738"}}, telegram.COSEM("0-0:96.13.1"))
+	require.Equal(t, []Attribute{&Measurement{value: 12345.678, unit: "kWh"}}, telegram.COSEM("1-0:2.8.2"))
 }
 
 func TestTelegramV42(t *testing.T) {
@@ -102,8 +112,13 @@ func TestTelegramV42(t *testing.T) {
 		"0-1:24.2.1(161129200000W)(00981.443*m3)\r\n" +
 		"!6796\r\n"
 
-	_, err := ParseString(raw)
+	telegram, err := ParseString(raw)
 	require.NoError(t, err)
+
+	require.Equal(t, "/KFM5KAIFA-METER", telegram.Header())
+	require.Equal(t, "6796", telegram.Checksum())
+	require.Equal(t, []Attribute{&Text{value: "4819243993373755377509728609491464"}}, telegram.COSEM("0-1:96.1.0"))
+	require.Equal(t, []Attribute{&Measurement{value: 6.0, unit: "A"}}, telegram.COSEM("1-0:51.7.0"))
 }
 
 func TestTelegramV50(t *testing.T) {
@@ -149,11 +164,17 @@ func TestTelegramV50(t *testing.T) {
 		"0-2:96.1.0()\r\n" +
 		"!6EEE\r\n"
 
-	_, err := ParseString(raw)
+	telegram, err := ParseString(raw)
 	require.NoError(t, err)
+
+	require.Equal(t, "/ISk5\\2MT382-1000", telegram.Header())
+	require.Equal(t, "6EEE", telegram.Checksum())
+	require.Equal(t, nil, telegram.COSEM("0-0:96.13.0"))
+	require.Equal(t, []Attribute{&Measurement{value: 0.0, unit: "kW"}}, telegram.COSEM("1-0:62.7.0"))
 }
 
 func TestInvalidTelegram(t *testing.T) {
-	_, err := ParseString("invalid_telegram")
+	telegram, err := ParseString("invalid_telegram")
 	require.EqualError(t, err, "\nparse error near Unknown (line 1 symbol 1 - line 1 symbol 1):\n\"\"\n")
+	require.Equal(t, nil, telegram)
 }

@@ -31,7 +31,7 @@ func WithLocation(name string) Option {
 // Parse a DSRM telegram.
 func ParseString(s string, options ...Option) (*Telegram, error) {
 	t := &Telegram{
-		COSEM: map[string]*COSEM{},
+		cosem: map[string]*COSEM{},
 	}
 
 	tz, _ := time.LoadLocation("Europe/Amsterdam")

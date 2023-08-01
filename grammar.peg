@@ -17,35 +17,35 @@ Telegram <-
     EOF
 
 Header 
-    <- < '/' ( !EOL . )+ > EOL+ { p.t.Header = text }
+    <- < '/' ( !EOL . )+ > EOL+ { p.t.header = text }
 
 COSEM 
-    <- OBIS { p.c = &COSEM{OBIS: p.o}; p.a = nil }
-    Attribute+ { p.t.COSEM[p.c.OBIS.Value] = p.c }
+    <- OBIS { p.c = &COSEM{obis: p.o}; p.a = nil }
+    Attribute+ { p.t.cosem[p.c.obis.value] = p.c }
 
 Footer 
-    <- '!' < ( !EOL . )* > EOL { p.t.Checksum = text }
+    <- '!' < ( !EOL . )* > EOL { p.t.checksum = text }
 
 OBIS 
-    <- < Number '-' Number ':' Number '.' Number '.' Number > { p.o = &OBIS{Value: text} }
+    <- < Number '-' Number ':' Number '.' Number '.' Number > { p.o = &OBIS{value: text} }
 
 Attribute 
     <- '(' ( Measurement / Timestamp / Text )* ')' EOL?
     {
         if p.a != nil {
-            p.c.Attribute = append(p.c.Attribute, p.a)
+            p.c.attribute = append(p.c.attribute, p.a)
         }
     }
 
 Measurement 
-    <- < ( Number / '.' )+ > '*' { n, _ := strconv.ParseFloat(text, 32); p.a = &Measurement{Value: n} }
-    < ( !')' . )+ > { p.a.(*Measurement).Unit = text }
+    <- < ( Number / '.' )+ > '*' { n, _ := strconv.ParseFloat(text, 32); p.a = &Measurement{value: n} }
+    < ( !')' . )+ > { p.a.(*Measurement).unit = text }
 
 Text 
-    <- < ( !')' . )+ > { p.a = &Text{Value: text} }
+    <- < ( !')' . )+ > { p.a = &Text{value: text} }
 
 Timestamp 
-    <- < Number > ( 'S' / 'W' ) { t, _ := time.ParseInLocation("060102150405", text, p.tz); p.a = &Timestamp{Value: t.UTC()} }
+    <- < Number > ( 'S' / 'W' ) { t, _ := time.ParseInLocation("060102150405", text, p.tz); p.a = &Timestamp{value: t.UTC()} }
 
 Number 
     <- [0-9]+
