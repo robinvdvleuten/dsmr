@@ -5,7 +5,6 @@ import (
 	"time"
 
 	require "github.com/alecthomas/assert/v2"
-	"github.com/alecthomas/repr"
 	"github.com/shopspring/decimal"
 )
 
@@ -192,8 +191,6 @@ func TestInvalidMeasurement(t *testing.T) {
 		"!\r\n"
 
 	telegram, err := ParseString(raw)
-	repr.Println(telegram, repr.Indent("  "), repr.OmitEmpty(true))
-
 	require.EqualError(t, err, "can't convert 0.0..0 to decimal: too many .s")
 	require.Equal(t, nil, telegram)
 }
