@@ -6,4 +6,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+      - run: go install github.com/pointlander/peg@v1.0
+      - run: go generate
+      - uses: tj-actions/verify-changed-files@v16
+        id: verify-unchanged-grammar
+        with:
+          files: |
+            grammar.peg.go
+      - if: steps.verify-unchanged-grammar.outputs.files_changed == 'true'
+        run: echo "::error file=grammar.peg.go::Make sure you regenerate grammar.peg when making any changes"
       - uses: golangci/golangci-lint-action@v3
