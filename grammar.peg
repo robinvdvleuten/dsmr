@@ -1,6 +1,10 @@
 package dsmr
 
-import "time"
+import (
+    "time"
+
+    "github.com/shopspring/decimal"
+)
 
 type parser Peg {
     t *Telegram
@@ -38,7 +42,7 @@ Attribute
     }
 
 Measurement 
-    <- < ( Number / '.' )+ > '*' { n, _ := strconv.ParseFloat(text, 32); p.a = &Measurement{value: n} }
+    <- < ( Number / '.' )+ > '*' { d := decimal.RequireFromString(text); p.a = &Measurement{value: d} }
     < ( !')' . )+ > { p.a.(*Measurement).unit = text }
 
 Text 

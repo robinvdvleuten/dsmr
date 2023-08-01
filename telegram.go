@@ -4,6 +4,8 @@ package dsmr
 
 import (
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 type Telegram struct {
@@ -42,13 +44,13 @@ type Attribute interface {
 }
 
 type Measurement struct {
-	value float64
+	value decimal.Decimal
 	unit  string
 }
 
 func (m *Measurement) attribute() {}
 
-func (m *Measurement) Value() float64 {
+func (m *Measurement) Value() decimal.Decimal {
 	return m.value
 }
 

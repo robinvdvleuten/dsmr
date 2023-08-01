@@ -4,6 +4,7 @@ package dsmr
 
 import (
 	"fmt"
+	"github.com/shopspring/decimal"
 	"io"
 	"os"
 	"sort"
@@ -309,8 +310,8 @@ func (p *parser) Execute() {
 			}
 
 		case ruleAction6:
-			n, _ := strconv.ParseFloat(text, 32)
-			p.a = &Measurement{value: n}
+			d := decimal.RequireFromString(text)
+			p.a = &Measurement{value: d}
 		case ruleAction7:
 			p.a.(*Measurement).unit = text
 		case ruleAction8:
@@ -1559,7 +1560,7 @@ func (p *parser) Init(options ...func(*parser) error) error {
 		    }
 		}> */
 		nil,
-		/* 20 Action6 <- <{ n, _ := strconv.ParseFloat(text, 32); p.a = &Measurement{value: n} }> */
+		/* 20 Action6 <- <{ d := decimal.RequireFromString(text); p.a = &Measurement{value: d} }> */
 		nil,
 		/* 21 Action7 <- <{ p.a.(*Measurement).unit = text }> */
 		nil,

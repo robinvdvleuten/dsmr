@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	require "github.com/alecthomas/assert/v2"
+	"github.com/shopspring/decimal"
 )
 
 func TestTelegramV22(t *testing.T) {
@@ -35,7 +36,7 @@ func TestTelegramV22(t *testing.T) {
 	require.Equal(t, "/ISk5\\2MT382-1004", telegram.Header())
 	require.Equal(t, "", telegram.Checksum())
 	require.Equal(t, []Attribute{&Text{value: "00000000000000"}}, telegram.COSEM("0-0:96.1.1"))
-	require.Equal(t, []Attribute{&Measurement{value: 1.01, unit: "kW"}}, telegram.COSEM("1-0:1.7.0"))
+	require.Equal(t, []Attribute{&Measurement{value: decimal.RequireFromString("0001.01"), unit: "kW"}}, telegram.COSEM("1-0:1.7.0"))
 }
 
 func TestTelegramV30(t *testing.T) {
@@ -69,7 +70,7 @@ func TestTelegramV30(t *testing.T) {
 	require.Equal(t, "/ISk5\\2MT382-1000", telegram.Header())
 	require.Equal(t, "", telegram.Checksum())
 	require.Equal(t, []Attribute{&Text{value: "303132333435363738"}}, telegram.COSEM("0-0:96.13.1"))
-	require.Equal(t, []Attribute{&Measurement{value: 12345.678, unit: "kWh"}}, telegram.COSEM("1-0:2.8.2"))
+	require.Equal(t, []Attribute{&Measurement{value: decimal.RequireFromString("12345.678"), unit: "kWh"}}, telegram.COSEM("1-0:2.8.2"))
 }
 
 func TestTelegramV42(t *testing.T) {
@@ -118,7 +119,7 @@ func TestTelegramV42(t *testing.T) {
 	require.Equal(t, "/KFM5KAIFA-METER", telegram.Header())
 	require.Equal(t, "6796", telegram.Checksum())
 	require.Equal(t, []Attribute{&Text{value: "4819243993373755377509728609491464"}}, telegram.COSEM("0-1:96.1.0"))
-	require.Equal(t, []Attribute{&Measurement{value: 6.0, unit: "A"}}, telegram.COSEM("1-0:51.7.0"))
+	require.Equal(t, []Attribute{&Measurement{value: decimal.RequireFromString("006"), unit: "A"}}, telegram.COSEM("1-0:51.7.0"))
 }
 
 func TestTelegramV50(t *testing.T) {
@@ -170,7 +171,7 @@ func TestTelegramV50(t *testing.T) {
 	require.Equal(t, "/ISk5\\2MT382-1000", telegram.Header())
 	require.Equal(t, "6EEE", telegram.Checksum())
 	require.Equal(t, nil, telegram.COSEM("0-0:96.13.0"))
-	require.Equal(t, []Attribute{&Measurement{value: 0.0, unit: "kW"}}, telegram.COSEM("1-0:62.7.0"))
+	require.Equal(t, []Attribute{&Measurement{value: decimal.RequireFromString("00.000"), unit: "kW"}}, telegram.COSEM("1-0:62.7.0"))
 }
 
 func TestInvalidTelegram(t *testing.T) {
