@@ -2,6 +2,7 @@ package dsmr
 
 import (
 	"testing"
+	"time"
 
 	require "github.com/alecthomas/assert/v2"
 	"github.com/alecthomas/repr"
@@ -120,6 +121,7 @@ func TestTelegramV42(t *testing.T) {
 	require.Equal(t, "/KFM5KAIFA-METER", telegram.Header())
 	require.Equal(t, "6796", telegram.Checksum())
 	require.Equal(t, []Attribute{&Text{value: "4819243993373755377509728609491464"}}, telegram.COSEM("0-1:96.1.0"))
+	require.Equal(t, []Attribute{&Text{value: "3"}, &OBIS{value: "0-0:96.7.19"}, &Timestamp{value: time.Date(2000, time.January, 4, 17, 3, 20, 0, time.UTC)}, &Measurement{value: decimal.RequireFromString("0000237126"), unit: "s"}, &Timestamp{value: time.Date(1999, time.December, 31, 23, 0, 1, 0, time.UTC)}, &Measurement{value: decimal.RequireFromString("2147583646"), unit: "s"}, &Timestamp{time.Date(2000, time.January, 1, 23, 0, 3, 0, time.UTC)}, &Measurement{value: decimal.RequireFromString("2317482647"), unit: "s"}}, telegram.COSEM("1-0:99.97.0"))
 	require.Equal(t, []Attribute{&Measurement{value: decimal.RequireFromString("006"), unit: "A"}}, telegram.COSEM("1-0:51.7.0"))
 }
 
@@ -172,6 +174,7 @@ func TestTelegramV50(t *testing.T) {
 	require.Equal(t, "/ISk5\\2MT382-1000", telegram.Header())
 	require.Equal(t, "6EEE", telegram.Checksum())
 	require.Equal(t, nil, telegram.COSEM("0-0:96.13.0"))
+	require.Equal(t, []Attribute{&Text{value: "0"}, &OBIS{value: "0-0:96.7.19"}}, telegram.COSEM("1-0:99.97.0"))
 	require.Equal(t, []Attribute{&Measurement{value: decimal.RequireFromString("00.000"), unit: "kW"}}, telegram.COSEM("1-0:62.7.0"))
 }
 

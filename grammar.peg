@@ -25,17 +25,14 @@ Header
     <- < '/' ( !EOL . )+ > EOL+ { p.t.header = text }
 
 COSEM 
-    <- OBIS { p.c = &COSEM{obis: p.o}; p.a = nil }
+    <- OBIS { p.c = &COSEM{obis: p.a.(*OBIS)}; p.a = nil }
     Attribute+ { p.t.cosem[p.c.obis.value] = p.c }
 
 Footer 
     <- '!' < ( !EOL . )* > EOL { p.t.checksum = text }
 
-OBIS 
-    <- < Number '-' Number ':' Number '.' Number '.' Number > { p.o = &OBIS{value: text} }
-
 Attribute 
-    <- '(' ( Measurement / Timestamp / Text )* ')' EOL?
+    <- '(' ( Measurement / OBIS / Timestamp / Text )* ')' EOL?
     {
         if p.a != nil {
             p.c.attribute = append(p.c.attribute, p.a)
@@ -54,6 +51,9 @@ Measurement
         p.a = &Measurement{value: d}
     }
     < ( !')' . )+ > { p.a.(*Measurement).unit = text }
+
+OBIS 
+    <- < Number '-' Number ':' Number '.' Number '.' Number > { p.a = &OBIS{value: text} }
 
 Text 
     <- < ( !')' . )+ > { p.a = &Text{value: text} }
