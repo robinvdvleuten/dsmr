@@ -17,7 +17,7 @@ type parser Peg {
 
 Telegram <- 
     Header 
-    COSEM+
+    COSEM?
     Footer 
     EOF
 
