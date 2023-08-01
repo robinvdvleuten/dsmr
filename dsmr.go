@@ -56,5 +56,9 @@ func ParseString(s string, options ...Option) (*Telegram, error) {
 
 	p.Execute()
 
+	if p.err != nil {
+		return nil, p.err
+	}
+
 	return t, nil
 }

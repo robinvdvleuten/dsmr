@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	require "github.com/alecthomas/assert/v2"
+	"github.com/alecthomas/repr"
 	"github.com/shopspring/decimal"
 )
 
@@ -177,5 +178,19 @@ func TestTelegramV50(t *testing.T) {
 func TestInvalidTelegram(t *testing.T) {
 	telegram, err := ParseString("invalid_telegram")
 	require.EqualError(t, err, "\nparse error near Unknown (line 1 symbol 1 - line 1 symbol 1):\n\"\"\n")
+	require.Equal(t, nil, telegram)
+}
+
+func TestInvalidMeasurement(t *testing.T) {
+	raw := "" +
+		"/foo\r\n" +
+		"\r\n" +
+		"0-0:0.0.0(0.0..0*bar)\r\n" +
+		"!\r\n"
+
+	telegram, err := ParseString(raw)
+	repr.Println(telegram, repr.Indent("  "), repr.OmitEmpty(true))
+
+	require.EqualError(t, err, "can't convert 0.0..0 to decimal: too many .s")
 	require.Equal(t, nil, telegram)
 }

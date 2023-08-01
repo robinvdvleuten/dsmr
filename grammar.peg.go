@@ -182,11 +182,12 @@ func (t *tokens32) Tokens() []token32 {
 }
 
 type parser struct {
-	t  *Telegram
-	o  *OBIS
-	c  *COSEM
-	a  Attribute
-	tz *time.Location
+	t   *Telegram
+	o   *OBIS
+	c   *COSEM
+	a   Attribute
+	tz  *time.Location
+	err Error
 
 	Buffer string
 	buffer []rune
@@ -310,8 +311,15 @@ func (p *parser) Execute() {
 			}
 
 		case ruleAction6:
-			d := decimal.RequireFromString(text)
+
+			d, err := decimal.NewFromString(text)
+			if err != nil {
+				p.err = err
+				return
+			}
+
 			p.a = &Measurement{value: d}
+
 		case ruleAction7:
 			p.a.(*Measurement).unit = text
 		case ruleAction8:
@@ -1560,7 +1568,15 @@ func (p *parser) Init(options ...func(*parser) error) error {
 		    }
 		}> */
 		nil,
-		/* 20 Action6 <- <{ d := decimal.RequireFromString(text); p.a = &Measurement{value: d} }> */
+		/* 20 Action6 <- <{
+		    d, err := decimal.NewFromString(text)
+		    if err != nil {
+		        p.err = err
+		        return
+		    }
+
+		    p.a = &Measurement{value: d}
+		}> */
 		nil,
 		/* 21 Action7 <- <{ p.a.(*Measurement).unit = text }> */
 		nil,

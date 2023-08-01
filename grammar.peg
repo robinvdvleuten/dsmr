@@ -7,11 +7,12 @@ import (
 )
 
 type parser Peg {
-    t *Telegram
-    o *OBIS
-    c *COSEM
-    a Attribute
-    tz *time.Location
+    t   *Telegram
+    o   *OBIS
+    c   *COSEM
+    a   Attribute
+    tz  *time.Location
+    err Error
 }
 
 Telegram <- 
@@ -42,7 +43,16 @@ Attribute
     }
 
 Measurement 
-    <- < ( Number / '.' )+ > '*' { d := decimal.RequireFromString(text); p.a = &Measurement{value: d} }
+    <- < ( Number / '.' )+ > '*'
+    { 
+        d, err := decimal.NewFromString(text)
+        if err != nil {
+            p.err = err
+            return
+        }
+
+        p.a = &Measurement{value: d}
+    }
     < ( !')' . )+ > { p.a.(*Measurement).unit = text }
 
 Text 
