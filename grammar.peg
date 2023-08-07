@@ -22,7 +22,7 @@ Telegram <-
     EOF
 
 Header 
-    <- < '/' ( !EOL . )+ > EOL+ { p.t.header = text }
+    <- '/' < ( !EOL . )+ > EOL+ { p.t.header = text }
 
 COSEM 
     <- OBIS { p.c = &COSEM{obis: p.a.(*OBIS)}; p.a = nil }

@@ -427,12 +427,12 @@ func (p *parser) Init(options ...func(*parser) error) error {
 				position1 := position
 				{
 					position2 := position
+					if buffer[position] != rune('/') {
+						goto l0
+					}
+					position++
 					{
 						position3 := position
-						if buffer[position] != rune('/') {
-							goto l0
-						}
-						position++
 						{
 							position6, tokenIndex6 := position, tokenIndex
 							if !_rules[ruleEOL]() {
@@ -1432,7 +1432,7 @@ func (p *parser) Init(options ...func(*parser) error) error {
 			position, tokenIndex = position0, tokenIndex0
 			return false
 		},
-		/* 1 Header <- <(<('/' (!EOL .)+)> EOL+ Action0)> */
+		/* 1 Header <- <('/' <(!EOL .)+> EOL+ Action0)> */
 		nil,
 		/* 2 COSEM <- <(OBIS Action1 Attribute+ Action2)> */
 		nil,
