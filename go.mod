@@ -4,8 +4,8 @@ go 1.19
 
 require (
 	github.com/alecthomas/assert/v2 v2.3.0
+	github.com/alecthomas/participle/v2 v2.0.0
 	github.com/alecthomas/repr v0.2.0
-	github.com/shopspring/decimal v1.3.1
 	github.com/snksoft/crc v1.1.0
 )
 

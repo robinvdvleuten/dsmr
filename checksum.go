@@ -8,9 +8,9 @@ import (
 	"github.com/snksoft/crc"
 )
 
-func (t *Telegram) check(r io.Reader) error {
-	// Only check checksum if we found one while parsing.
-	if t.checksum == "" {
+func (a *AST) check(r io.Reader) error {
+	// Only check footer if we found one while parsing.
+	if a.Footer.Value.Value == "" {
 		return nil
 	}
 
@@ -23,8 +23,8 @@ func (t *Telegram) check(r io.Reader) error {
 	msg := strings.Split(string(b), "!")[0] + "!"
 	checksum := fmt.Sprintf("%04X", crc.CalculateCRC(crc.CRC16, []byte(msg)))
 
-	if t.checksum != checksum {
-		return &ChecksumError{Unexpected: checksum, Expect: t.checksum}
+	if a.Footer.Value.Value != checksum {
+		return &ChecksumError{Unexpected: checksum, Expect: a.Footer.Value.Value}
 	}
 
 	return nil

@@ -1,8 +1,6 @@
 package main
 
 import (
-	"strings"
-
 	"github.com/alecthomas/repr"
 	"github.com/mijnverbruik/dsmr"
 )
@@ -50,7 +48,7 @@ func main() {
 		"0-2:96.1.0()\r\n" +
 		"!6EEE\r\n"
 
-	telegram, err := dsmr.Parse(strings.NewReader(raw))
+	telegram, err := dsmr.ParseString(raw)
 	if err != nil {
 		panic(err)
 	}
