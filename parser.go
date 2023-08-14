@@ -90,6 +90,8 @@ func (o *Object) children() []Node         { return []Node{o.OBIS, o.Value} }
 
 // Value represents an object value.
 type Value interface {
+	value()
+
 	Node
 }
 
@@ -104,6 +106,7 @@ type EventLog struct {
 
 var _ Value = &EventLog{}
 
+func (e *EventLog) value()                   {}
 func (e *EventLog) Position() lexer.Position { return e.Pos }
 
 func (e *EventLog) children() (children []Node) {
@@ -126,6 +129,7 @@ type Event struct {
 
 var _ Value = &Event{}
 
+func (e *Event) value()                      {}
 func (e *Event) Position() lexer.Position    { return e.Pos }
 func (e *Event) children() (children []Node) { return []Node{e.Timestamp, e.Value} }
 
@@ -138,6 +142,7 @@ type List struct {
 
 var _ Value = &List{}
 
+func (l *List) value()                   {}
 func (l *List) Position() lexer.Position { return l.Pos }
 
 func (l *List) children() (children []Node) {
@@ -163,6 +168,7 @@ type OBIS struct {
 var _ Value = &OBIS{}
 var _ ListValue = &OBIS{}
 
+func (o *OBIS) value()                   {}
 func (o *OBIS) Position() lexer.Position { return o.Pos }
 func (o *OBIS) children() []Node         { return nil }
 
@@ -177,6 +183,7 @@ type Measurement struct {
 var _ Value = &Measurement{}
 var _ ListValue = &Measurement{}
 
+func (m *Measurement) value()                   {}
 func (m *Measurement) Position() lexer.Position { return m.Pos }
 
 func (m *Measurement) children() (children []Node) {
@@ -194,6 +201,7 @@ type Timestamp struct {
 var _ Value = &Timestamp{}
 var _ ListValue = &Timestamp{}
 
+func (t *Timestamp) value()                   {}
 func (t *Timestamp) Position() lexer.Position { return t.Pos }
 func (t *Timestamp) children() []Node         { return nil }
 
@@ -207,6 +215,7 @@ type Number struct {
 var _ Value = &Number{}
 var _ ListValue = &Number{}
 
+func (n *Number) value()                   {}
 func (n *Number) Position() lexer.Position { return n.Pos }
 func (n *Number) children() []Node         { return nil }
 
@@ -222,6 +231,7 @@ type String struct {
 var _ Value = &String{}
 var _ ListValue = &String{}
 
+func (s *String) value()                   {}
 func (s *String) Position() lexer.Position { return s.Pos }
 func (s *String) children() []Node         { return nil }
 
