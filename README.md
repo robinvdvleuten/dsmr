@@ -12,7 +12,7 @@ A package for parsing Dutch Smart Meter Requirements (DSMR) telegram data.
 ```go
 import "github.com/mijnverbruik/dsmr"
 
-raw := strings.NewReader("" +
+raw := "" +
     "/ISk5\\2MT382-1000\r\n" +
     "\r\n" +
     "1-3:0.2.8(50)\r\n" +
