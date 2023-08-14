@@ -321,51 +321,15 @@ func normalizeAST(ast *AST) *AST {
 
 func normalizeNodes(nodes []Node) {
 	for _, node := range nodes {
-		switch node := node.(type) {
-		case *Header:
-			node.Pos = lexer.Position{}
-			normalizeValue(node.Value)
-		case *Footer:
-			node.Pos = lexer.Position{}
-			normalizeValue(node.Value)
-		case *Object:
-			node.Pos = lexer.Position{}
-			normalizeValue(node.OBIS)
-			normalizeValue(node.Value)
-		}
-	}
-}
-
-func normalizeValue(v Value) {
-	rv := reflect.ValueOf(v)
-	if v == nil || rv.IsNil() {
-		return
-	}
-
-	rv = reflect.Indirect(rv)
-	rv.FieldByName("Pos").Set(reflect.ValueOf(lexer.Position{}))
-
-	switch v := v.(type) {
-	case *EventLog:
-		normalizeValue(v.Count)
-		normalizeValue(v.OBIS)
-
-		for _, v := range v.Value {
-			normalizeValue(v)
+		rv := reflect.ValueOf(node)
+		if node == nil || rv.IsNil() {
+			return
 		}
 
-	case *Event:
-		normalizeValue(v.Timestamp)
-		normalizeValue(v.Value)
+		rv = reflect.Indirect(rv)
+		rv.FieldByName("Pos").Set(reflect.ValueOf(lexer.Position{}))
 
-	case *List:
-		for _, v := range v.Value {
-			normalizeValue(v)
-		}
-
-	case *Measurement:
-		normalizeValue(v.Value)
-		normalizeValue(v.Unit)
+		normalizeNodes(node.children())
 	}
 }
 

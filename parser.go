@@ -59,7 +59,7 @@ var _ Entry = &Header{}
 
 func (h *Header) Key() string              { return "header" }
 func (h *Header) Position() lexer.Position { return h.Pos }
-func (h *Header) children() []Node         { return nil }
+func (h *Header) children() []Node         { return []Node{h.Value} }
 
 type Footer struct {
 	Pos lexer.Position `parser:""`
@@ -71,7 +71,7 @@ var _ Entry = &Footer{}
 
 func (f *Footer) Key() string              { return "footer" }
 func (f *Footer) Position() lexer.Position { return f.Pos }
-func (f *Footer) children() []Node         { return nil }
+func (f *Footer) children() []Node         { return []Node{f.Value} }
 
 // Object is a COSEM object in the Telegram represented by the
 // OBIS (Object Identification System) and one or more attributes.
@@ -127,7 +127,7 @@ type Event struct {
 var _ Value = &Event{}
 
 func (e *Event) Position() lexer.Position    { return e.Pos }
-func (e *Event) children() (children []Node) { return nil }
+func (e *Event) children() (children []Node) { return []Node{e.Timestamp, e.Value} }
 
 // List represents a list of values.
 type List struct {
