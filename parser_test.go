@@ -166,7 +166,13 @@ func TestParse(t *testing.T) {
 					obj("1-0:2.7.0", mm("00.000", "kW")),
 					obj("0-0:96.7.21", str("00015")),
 					obj("0-0:96.7.9", str("00007")),
-					obj("1-0:99.97.0", list(str("3"), obis("0-0:96.7.19"), ts("000104180320W"), mm("0000237126", "s"), ts("000101000001W"), mm("2147583646", "s"), ts("000102000003W"), mm("2317482647", "s"))),
+					obj("1-0:99.97.0",
+						log("3", "0-0:96.7.19",
+							event("000104180320W", "0000237126"),
+							event("000101000001W", "2147583646"),
+							event("000102000003W", "2317482647"),
+						),
+					),
 					obj("1-0:32.32.0", str("00000")),
 					obj("1-0:52.32.0", str("00000")),
 					obj("1-0:72.32.0", str("00000")),
@@ -249,7 +255,7 @@ func TestParse(t *testing.T) {
 					obj("1-0:2.7.0", mm("00.000", "kW")),
 					obj("0-0:96.7.21", str("00013")),
 					obj("0-0:96.7.9", str("00000")),
-					obj("1-0:99.97.0", list(str("0"), obis("0-0:96.7.19"))),
+					obj("1-0:99.97.0", log("0", "0-0:96.7.19")),
 					obj("1-0:32.32.0", str("00000")),
 					obj("1-0:52.32.0", str("00000")),
 					obj("1-0:72.32.0", str("00000")),
@@ -339,15 +345,27 @@ func normalizeValue(v Value) {
 	rv = reflect.Indirect(rv)
 	rv.FieldByName("Pos").Set(reflect.ValueOf(lexer.Position{}))
 
-	if v, ok := v.(*Measurement); ok {
-		normalizeValue(v.Value)
-		normalizeValue(v.Unit)
-	}
+	switch v := v.(type) {
+	case *EventLog:
+		normalizeValue(v.Count)
+		normalizeValue(v.OBIS)
 
-	if v, ok := v.(*List); ok {
 		for _, v := range v.Value {
 			normalizeValue(v)
 		}
+
+	case *Event:
+		normalizeValue(v.Timestamp)
+		normalizeValue(v.Value)
+
+	case *List:
+		for _, v := range v.Value {
+			normalizeValue(v)
+		}
+
+	case *Measurement:
+		normalizeValue(v.Value)
+		normalizeValue(v.Unit)
 	}
 }
 
@@ -361,6 +379,14 @@ func footer(v string) *Footer {
 
 func obj(o string, v Value) *Object {
 	return &Object{OBIS: obis(o), Value: v}
+}
+
+func log(c string, o string, v ...*Event) *EventLog {
+	return &EventLog{Count: num(c), OBIS: obis(o), Value: v}
+}
+
+func event(t string, v string) *Event {
+	return &Event{Timestamp: ts(t), Value: mm(v, "s")}
 }
 
 func list(v ...ListValue) *List {

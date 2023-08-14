@@ -86,18 +86,54 @@ var _ Entry = &Object{}
 
 func (o *Object) Key() string              { return o.OBIS.Value }
 func (o *Object) Position() lexer.Position { return o.Pos }
-func (o *Object) children() []Node         { return []Node{o.Value} }
+func (o *Object) children() []Node         { return []Node{o.OBIS, o.Value} }
 
 // Value represents an object value.
 type Value interface {
 	Node
 }
 
-// List represents a list of values
+// EventLog represents a log of events.
+type EventLog struct {
+	Pos lexer.Position `parser:""`
+
+	Count *Number  `parser:"@@ ')'"`
+	OBIS  *OBIS    `parser:"'(' @@ ( ')' (?='(') )?"`
+	Value []*Event `parser:"@@*"`
+}
+
+var _ Value = &EventLog{}
+
+func (e *EventLog) Position() lexer.Position { return e.Pos }
+
+func (e *EventLog) children() (children []Node) {
+	children = append(children, e.Count, e.OBIS)
+
+	for _, val := range e.Value {
+		children = append(children, val)
+	}
+
+	return
+}
+
+// Event represents a timestamp+duration.
+type Event struct {
+	Pos lexer.Position `parser:""`
+
+	Timestamp *Timestamp   `parser:"'(' @@ ')'"`
+	Value     *Measurement `parser:"'(' @@ ( ')' (?='(') )?"`
+}
+
+var _ Value = &Event{}
+
+func (e *Event) Position() lexer.Position    { return e.Pos }
+func (e *Event) children() (children []Node) { return nil }
+
+// List represents a list of values.
 type List struct {
 	Pos lexer.Position `parser:""`
 
-	Value []ListValue `parser:"(@@ ')' '(')+ @@"`
+	Value []ListValue `parser:"( @@ ')' '(' )+ @@"`
 }
 
 var _ Value = &List{}
@@ -202,7 +238,7 @@ var (
 	parser = participle.MustBuild[AST](
 		participle.Lexer(lex),
 		participle.Elide("EOL"),
-		participle.Union[Value](&List{}, &OBIS{}, &Measurement{}, &Timestamp{}, &String{}),
+		participle.Union[Value](&EventLog{}, &List{}, &OBIS{}, &Measurement{}, &Timestamp{}, &String{}),
 		participle.Union[ListValue](&OBIS{}, &Measurement{}, &Timestamp{}, &String{}),
 		participle.UseLookahead(4),
 	)
