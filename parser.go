@@ -1,8 +1,10 @@
 package dsmr
 
 import (
+	"bytes"
 	"io"
 	"math/big"
+	"strings"
 
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
@@ -260,7 +262,7 @@ func Parse(r io.Reader) (*AST, error) {
 		return nil, err
 	}
 
-	return ast, nil
+	return ast, ast.VerifyChecksum(r)
 }
 
 // ParseString parses telegram from a string.
@@ -270,7 +272,7 @@ func ParseString(str string) (*AST, error) {
 		return nil, err
 	}
 
-	return ast, nil
+	return ast, ast.VerifyChecksum(strings.NewReader(str))
 }
 
 // ParseBytes parses telegram from bytes.
@@ -280,5 +282,5 @@ func ParseBytes(data []byte) (*AST, error) {
 		return nil, err
 	}
 
-	return ast, nil
+	return ast, ast.VerifyChecksum(bytes.NewReader(data))
 }

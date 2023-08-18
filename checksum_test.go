@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	require "github.com/alecthomas/assert/v2"
+	"github.com/alecthomas/assert/v2"
 )
 
 func TestValidChecksum(t *testing.T) {
@@ -14,8 +14,8 @@ func TestValidChecksum(t *testing.T) {
 		"!75B7\r\n"
 
 	ast := &AST{Footer: &Footer{Value: &String{Value: "75B7"}}}
-	err := ast.check(strings.NewReader(raw))
-	require.NoError(t, err)
+	err := ast.VerifyChecksum(strings.NewReader(raw))
+	assert.NoError(t, err)
 }
 
 func TestInvalidChecksum(t *testing.T) {
@@ -25,6 +25,6 @@ func TestInvalidChecksum(t *testing.T) {
 		"!1234\r\n"
 
 	ast := &AST{Footer: &Footer{Value: &String{Value: "1234"}}}
-	err := ast.check(strings.NewReader(raw))
-	require.EqualError(t, err, "unexpected checksum \"75B7\" (expected \"1234\")")
+	err := ast.VerifyChecksum(strings.NewReader(raw))
+	assert.EqualError(t, err, "unexpected checksum \"75B7\" (expected \"1234\")")
 }
