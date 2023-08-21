@@ -306,7 +306,6 @@ func TestParse(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func normalizeAST(ast *AST) *AST {

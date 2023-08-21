@@ -54,11 +54,16 @@ raw := "" +
     "0-2:96.1.0()\r\n" +
     "!6EEE\r\n"
 
-telegram, err := dsmr.ParseString(raw)
+type Telegram struct {
+    Timestamp            time.Time `dsmr:"0-0:1.0.0"`
+    ElectricityDelivered float64   `dsmr:"1-0:1.8.1"`
+}
+
+telegram = &Telegram{}
+err := dsmr.Unmarshal([]byte(raw), telegram)
 ```
 
 ## Contributing
-
 Everyone is encouraged to help improve this project. Here are a few ways you can help:
 
 - [Report bugs](https://github.com/mijnverbruik/dsmr/issues)
