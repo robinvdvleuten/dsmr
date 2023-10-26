@@ -198,6 +198,7 @@ type Timestamp struct {
 	Pos lexer.Position `parser:""`
 
 	Value string `parser:"@Timestamp"`
+	DST   bool   `parser:"(@'S' | 'W')"`
 }
 
 var _ Value = &Timestamp{}
@@ -240,7 +241,7 @@ func (s *String) children() []Node         { return nil }
 var (
 	lex = lexer.MustSimple([]lexer.SimpleRule{
 		{"OBIS", `\d{1,2}-\d{1,2}:\d{1,2}\.\d{1,2}\.\d{1,2}`},
-		{"Timestamp", `\d{12}(S|W)`},
+		{"Timestamp", `\d{12}`},
 		{"Number", `\d*\.?\d+`},
 		{"Chars", `[[:alnum:]]+`},
 		{"Punct", `[-_!*.\\/()]`},
