@@ -15,7 +15,7 @@ func TestParse(t *testing.T) {
 		name     string
 		telegram string
 		fail     string
-		expected *AST
+		expected *Telegram
 	}{
 		{
 			name: "v2.2",
@@ -40,7 +40,7 @@ func TestParse(t *testing.T) {
 				"(00001.001)\r\n" +
 				"0-1:24.4.0(1)\r\n" +
 				"!\r\n",
-			expected: &AST{
+			expected: &Telegram{
 				Header: header("ISk5\\2MT382-1004"),
 				Data: []*Object{
 					obj("0-0:96.1.1", str("00000000000000")),
@@ -88,7 +88,7 @@ func TestParse(t *testing.T) {
 				"(00001.001)\r\n" +
 				"0-1:24.4.0(1)\r\n" +
 				"!\r\n",
-			expected: &AST{
+			expected: &Telegram{
 				Header: header("ISk5\\2MT382-1000"),
 				Data: []*Object{
 					obj("0-0:96.1.1", str("4B384547303034303436333935353037")),
@@ -151,7 +151,7 @@ func TestParse(t *testing.T) {
 				"0-1:96.1.0(4819243993373755377509728609491464)\r\n" +
 				"0-1:24.2.1(161129200000W)(00981.443*m3)\r\n" +
 				"!6796\r\n",
-			expected: &AST{
+			expected: &Telegram{
 				Header: header("KFM5KAIFA-METER"),
 				Data: []*Object{
 					obj("1-3:0.2.8", str("42")),
@@ -240,7 +240,7 @@ func TestParse(t *testing.T) {
 				"0-2:24.1.0(003)\r\n" +
 				"0-2:96.1.0()\r\n" +
 				"!8397\r\n",
-			expected: &AST{
+			expected: &Telegram{
 				Header: header("ISk5\\2MT382-1000"),
 				Data: []*Object{
 					obj("1-3:0.2.8", str("50")),
@@ -297,7 +297,7 @@ func TestParse(t *testing.T) {
 			if test.fail != "" {
 				assert.EqualError(t, err, test.fail)
 			} else {
-				normalizeAST(ast)
+				normalizeTelegram(ast)
 
 				assert.NoError(t, err)
 				assert.Equal(t,
@@ -308,14 +308,14 @@ func TestParse(t *testing.T) {
 	}
 }
 
-func normalizeAST(ast *AST) *AST {
-	if ast == nil {
+func normalizeTelegram(t *Telegram) *Telegram {
+	if t == nil {
 		return nil
 	}
-	ast.Pos = lexer.Position{}
-	normalizeNodes(ast.children())
+	t.Pos = lexer.Position{}
+	normalizeNodes(t.children())
 
-	return ast
+	return t
 }
 
 func normalizeNodes(nodes []Node) {

@@ -20,8 +20,8 @@ type Entry interface {
 // Data Objects in the root of the AST.
 type Data []*Object
 
-// AST for telegram data.
-type AST struct {
+// Struct for telegram data.
+type Telegram struct {
 	Pos lexer.Position `parser:""`
 
 	Header *Header `parser:"@@"`
@@ -29,19 +29,19 @@ type AST struct {
 	Footer *Footer `parser:"@@"`
 }
 
-func (a *AST) Position() lexer.Position { return a.Pos }
+func (t *Telegram) Position() lexer.Position { return t.Pos }
 
-func (a *AST) entries() (entries []Entry) {
-	entries = append(entries, a.Header, a.Footer)
-	for _, obj := range a.Data {
+func (t *Telegram) entries() (entries []Entry) {
+	entries = append(entries, t.Header, t.Footer)
+	for _, obj := range t.Data {
 		entries = append(entries, obj)
 	}
 
 	return
 }
 
-func (a *AST) children() (children []Node) {
-	for _, entry := range a.entries() {
+func (t *Telegram) children() (children []Node) {
+	for _, entry := range t.entries() {
 		children = append(children, entry)
 	}
 
@@ -245,7 +245,7 @@ var (
 		{"EOL", `\r\n`},
 	})
 
-	parser = participle.MustBuild[AST](
+	parser = participle.MustBuild[Telegram](
 		participle.Lexer(lex),
 		participle.Elide("EOL"),
 		participle.Union[Value](&EventLog{}, &List{}, &OBIS{}, &Measurement{}, &Timestamp{}, &String{}),
@@ -255,11 +255,11 @@ var (
 )
 
 // Parse parses telegram from a string.
-func Parse(str string) (*AST, error) {
-	ast, err := parser.ParseString("", str)
+func Parse(str string) (*Telegram, error) {
+	t, err := parser.ParseString("", str)
 	if err != nil {
 		return nil, err
 	}
 
-	return ast, ast.VerifyChecksum(str)
+	return t, t.VerifyChecksum(str)
 }
