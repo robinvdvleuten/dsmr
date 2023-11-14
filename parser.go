@@ -31,18 +31,11 @@ type Telegram struct {
 
 func (t *Telegram) Position() lexer.Position { return t.Pos }
 
-func (t *Telegram) entries() (entries []Entry) {
-	entries = append(entries, t.Header, t.Footer)
-	for _, obj := range t.Data {
-		entries = append(entries, obj)
-	}
-
-	return
-}
-
 func (t *Telegram) children() (children []Node) {
-	for _, entry := range t.entries() {
-		children = append(children, entry)
+	children = append(children, t.Header, t.Footer)
+
+	for _, obj := range t.Data {
+		children = append(children, obj)
 	}
 
 	return
@@ -250,6 +243,7 @@ var (
 		participle.Elide("EOL"),
 		participle.Union[Value](&EventLog{}, &List{}, &OBIS{}, &Measurement{}, &Timestamp{}, &String{}),
 		participle.Union[ListValue](&OBIS{}, &Measurement{}, &Timestamp{}, &String{}),
+		// We need lookahead to handle list values correctly.
 		participle.UseLookahead(4),
 	)
 )
@@ -261,5 +255,5 @@ func Parse(str string) (*Telegram, error) {
 		return nil, err
 	}
 
-	return t, t.VerifyChecksum(str)
+	return t, VerifyChecksum(t, str)
 }

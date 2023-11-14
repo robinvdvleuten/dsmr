@@ -13,7 +13,7 @@ func TestValidChecksum(t *testing.T) {
 		"!75B7\r\n"
 
 	telegram := &Telegram{Footer: &Footer{Value: "75B7"}}
-	err := telegram.VerifyChecksum(raw)
+	err := VerifyChecksum(telegram, raw)
 	assert.NoError(t, err)
 }
 
@@ -24,6 +24,6 @@ func TestInvalidChecksum(t *testing.T) {
 		"!1234\r\n"
 
 	telegram := &Telegram{Footer: &Footer{Value: "1234"}}
-	err := telegram.VerifyChecksum(raw)
+	err := VerifyChecksum(telegram, raw)
 	assert.EqualError(t, err, "unexpected checksum \"75B7\" (expected \"1234\")")
 }
