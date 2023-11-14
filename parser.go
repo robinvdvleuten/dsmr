@@ -1,3 +1,5 @@
+//go:generate pigeon -o grammar/grammar.go -optimize-parser grammar/grammar.peg
+
 package dsmr
 
 import (

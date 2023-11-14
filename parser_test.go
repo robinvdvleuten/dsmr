@@ -60,7 +60,7 @@ func TestParse(t *testing.T) {
 					obj("0-1:24.3.0", llc(str("161107190000"), obis("0-1:24.2.1"), lmm("00001.001", "m3"))),
 					obj("0-1:24.4.0", str("1")),
 				},
-				Footer: &Footer{},
+				Footer: footer(""),
 			},
 		},
 		{

@@ -1,0 +1,52 @@
+{
+package grammar
+
+import (
+    "strconv"
+)
+}
+
+Telegram <- header:Header data:Object+ footer:Footer EOF {
+    telegram := &Telegram{Header: header.(*Header), Footer: footer.(*Footer)}
+
+    for _, obj := range data.([]interface{}) {
+        telegram.Data = append(telegram.Data, obj.(*Object))
+    }
+
+    return telegram, nil
+}
+
+Header <- '/' rest:NotEOL EOL EOL {
+    return &Header{Value: rest.(string)}, nil
+}
+
+Footer <- '!' rest:NotEOL EOL {
+    return &Footer{Value: rest.(string)}, nil
+}
+
+Object <- obis:OBIS '(' value:Value ')' EOL {
+    fmt.Printf("%v: %v\n", obis, value)
+    return &Object{Id: obis.(*OBIS), Value: value}, nil
+}
+
+Value <- String
+
+OBIS <- groupA:Integer '-' groupB:Integer ':' groupC:Integer '.' groupD:Integer '.' groupE:Integer {
+    return &OBIS{groupA.(int), groupB.(int), groupC.(int), groupD.(int), groupE.(int)}, nil
+}
+
+Integer <- [0-9]+ {
+    return strconv.Atoi(string(c.text))
+}
+
+String <- [a-zA-Z0-9]+ {
+    return string(c.text), nil
+}
+
+NotEOL <- ( !EOL . )* {
+    return string(c.text), nil
+}
+
+EOL <- "\r\n"
+
+EOF <- !.

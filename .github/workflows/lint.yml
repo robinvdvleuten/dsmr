@@ -9,13 +9,13 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
-      - run: go install github.com/pointlander/peg@v1.0
+      - run: go install github.com/mna/pigeon@v1.2
       - run: go generate
       - uses: tj-actions/verify-changed-files@v19
         id: verify-unchanged-grammar
         with:
           files: |
-            grammar.peg.go
+            grammar/grammar.go
       - if: steps.verify-unchanged-grammar.outputs.files_changed == 'true'
-        run: echo "::error file=grammar.peg.go::Make sure you regenerate grammar.peg when making any changes" && exit 1
+        run: echo "::error file=grammar/grammar.go::Make sure you regenerate grammar/grammar.peg when making any changes" && exit 1
       - uses: golangci/golangci-lint-action@v4
