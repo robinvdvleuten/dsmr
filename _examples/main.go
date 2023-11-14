@@ -45,7 +45,7 @@ func main() {
 		"0-1:24.2.1(161129200000W)(00981.443*m3)\r\n" +
 		"!6796\r\n"
 
-	telegram, err := dsmr.ParseString(raw)
+	telegram, err := dsmr.Parse(raw)
 	if err != nil {
 		panic(err)
 	}

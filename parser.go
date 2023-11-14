@@ -1,10 +1,7 @@
 package dsmr
 
 import (
-	"bytes"
-	"io"
 	"math/big"
-	"strings"
 
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
@@ -257,31 +254,12 @@ var (
 	)
 )
 
-func Parse(r io.Reader) (*AST, error) {
-	ast, err := parser.Parse("", r)
-	if err != nil {
-		return nil, err
-	}
-
-	return ast, ast.VerifyChecksum(r)
-}
-
-// ParseString parses telegram from a string.
-func ParseString(str string) (*AST, error) {
+// Parse parses telegram from a string.
+func Parse(str string) (*AST, error) {
 	ast, err := parser.ParseString("", str)
 	if err != nil {
 		return nil, err
 	}
 
-	return ast, ast.VerifyChecksum(strings.NewReader(str))
-}
-
-// ParseBytes parses telegram from bytes.
-func ParseBytes(data []byte) (*AST, error) {
-	ast, err := parser.ParseBytes("", data)
-	if err != nil {
-		return nil, err
-	}
-
-	return ast, ast.VerifyChecksum(bytes.NewReader(data))
+	return ast, ast.VerifyChecksum(str)
 }

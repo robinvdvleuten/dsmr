@@ -1,7 +1,6 @@
 package dsmr
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/alecthomas/assert/v2"
@@ -14,7 +13,7 @@ func TestValidChecksum(t *testing.T) {
 		"!75B7\r\n"
 
 	ast := &AST{Footer: &Footer{Value: "75B7"}}
-	err := ast.VerifyChecksum(strings.NewReader(raw))
+	err := ast.VerifyChecksum(raw)
 	assert.NoError(t, err)
 }
 
@@ -25,6 +24,6 @@ func TestInvalidChecksum(t *testing.T) {
 		"!1234\r\n"
 
 	ast := &AST{Footer: &Footer{Value: "1234"}}
-	err := ast.VerifyChecksum(strings.NewReader(raw))
+	err := ast.VerifyChecksum(raw)
 	assert.EqualError(t, err, "unexpected checksum \"75B7\" (expected \"1234\")")
 }
