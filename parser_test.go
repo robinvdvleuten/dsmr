@@ -293,16 +293,16 @@ func TestParse(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ast, err := Parse(test.telegram)
+			telegram, err := Parse(test.telegram)
 			if test.fail != "" {
 				assert.EqualError(t, err, test.fail)
 			} else {
-				normalizeTelegram(ast)
+				normalizeTelegram(telegram)
 
 				assert.NoError(t, err)
 				assert.Equal(t,
 					repr.String(test.expected, repr.Indent("  ")),
-					repr.String(ast, repr.Indent("  ")))
+					repr.String(telegram, repr.Indent("  ")))
 			}
 		})
 	}

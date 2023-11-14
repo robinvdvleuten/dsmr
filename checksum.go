@@ -7,9 +7,9 @@ import (
 	"github.com/snksoft/crc"
 )
 
-func VerifyChecksum(t *Telegram, raw string) error {
-	// Only check footer if we found one while parsing.
-	if t.Footer.Value == "" {
+func verifyChecksum(t *Telegram, raw string, opts *parseOptions) error {
+	// Only check footer if verifying is enabled and we found one while parsing
+	if !opts.verifyChecksum || t.Footer.Value == "" {
 		return nil
 	}
 

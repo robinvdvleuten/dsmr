@@ -249,11 +249,21 @@ var (
 )
 
 // Parse parses telegram from a string.
-func Parse(str string) (*Telegram, error) {
+func Parse(str string, options ...Option) (*Telegram, error) {
+	opts := parseOptions{
+		verifyChecksum: true,
+	}
+
+	for _, option := range options {
+		if err := option(&opts); err != nil {
+			return nil, err
+		}
+	}
+
 	t, err := parser.ParseString("", str)
 	if err != nil {
 		return nil, err
 	}
 
-	return t, VerifyChecksum(t, str)
+	return t, verifyChecksum(t, str, &opts)
 }
