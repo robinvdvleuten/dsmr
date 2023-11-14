@@ -333,11 +333,11 @@ func normalizeNodes(nodes []Node) {
 }
 
 func header(v string) *Header {
-	return &Header{Value: str(v)}
+	return &Header{Value: v}
 }
 
 func footer(v string) *Footer {
-	return &Footer{Value: str(v)}
+	return &Footer{Value: v}
 }
 
 func obj(o string, v Value) *Object {

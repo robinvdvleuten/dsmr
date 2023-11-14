@@ -54,26 +54,26 @@ func (a *AST) children() (children []Node) {
 type Header struct {
 	Pos lexer.Position `parser:""`
 
-	Value *String `parser:"'/' @@ (?=EOL)"`
+	Value string `parser:"'/' @(~EOL)+ (?=EOL)"`
 }
 
 var _ Entry = &Header{}
 
 func (h *Header) Key() string              { return "header" }
 func (h *Header) Position() lexer.Position { return h.Pos }
-func (h *Header) children() []Node         { return []Node{h.Value} }
+func (h *Header) children() []Node         { return nil }
 
 type Footer struct {
 	Pos lexer.Position `parser:""`
 
-	Value *String `parser:"'!' @@? (?=EOL)"`
+	Value string `parser:"'!' @(~EOL)? (?=EOL)"`
 }
 
 var _ Entry = &Footer{}
 
 func (f *Footer) Key() string              { return "footer" }
 func (f *Footer) Position() lexer.Position { return f.Pos }
-func (f *Footer) children() []Node         { return []Node{f.Value} }
+func (f *Footer) children() []Node         { return nil }
 
 // Object is a COSEM object in the Telegram represented by the
 // OBIS (Object Identification System) and one or more attributes.
