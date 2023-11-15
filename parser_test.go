@@ -167,7 +167,7 @@ func TestParse(t *testing.T) {
 					obj("0-0:96.7.21", str("00015")),
 					obj("0-0:96.7.9", str("00007")),
 					obj("1-0:99.97.0",
-						log("3", "0-0:96.7.19",
+						events("3", "0-0:96.7.19",
 							event(ts("000104180320", false), "0000237126"),
 							event(ts("000101000001", false), "2147583646"),
 							event(ts("000102000003", false), "2317482647"),
@@ -255,7 +255,7 @@ func TestParse(t *testing.T) {
 					obj("1-0:2.7.0", mm("00.000", "kW")),
 					obj("0-0:96.7.21", str("00013")),
 					obj("0-0:96.7.9", str("00000")),
-					obj("1-0:99.97.0", log("0", "0-0:96.7.19")),
+					obj("1-0:99.97.0", events("0", "0-0:96.7.19")),
 					obj("1-0:32.32.0", str("00000")),
 					obj("1-0:52.32.0", str("00000")),
 					obj("1-0:72.32.0", str("00000")),
@@ -344,7 +344,7 @@ func obj(o string, v Value) *Object {
 	return &Object{OBIS: obis(o), Value: v}
 }
 
-func log(c string, o string, v ...*Event) *EventLog {
+func events(c string, o string, v ...*Event) *EventLog {
 	return &EventLog{Count: num(c), OBIS: obis(o), Value: v}
 }
 
