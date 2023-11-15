@@ -44,7 +44,7 @@ func (t *Telegram) children() (children []Node) {
 type Header struct {
 	Pos lexer.Position `parser:""`
 
-	Value string `parser:"'/' @(~EOL)+ (?=EOL)"`
+	Value string `parser:"'/' @~EOL+ (?=EOL)"`
 }
 
 var _ Entry = &Header{}
@@ -56,7 +56,7 @@ func (h *Header) children() []Node         { return nil }
 type Footer struct {
 	Pos lexer.Position `parser:""`
 
-	Value string `parser:"'!' @(~EOL)? (?=EOL)"`
+	Value string `parser:"'!' @~EOL? (?=EOL)"`
 }
 
 var _ Entry = &Footer{}
@@ -125,30 +125,35 @@ func (e *Event) value()                      {}
 func (e *Event) Position() lexer.Position    { return e.Pos }
 func (e *Event) children() (children []Node) { return []Node{e.Timestamp, e.Value} }
 
-// List represents a list of values.
-type List struct {
+// LastCapture represents the last 5-minute capture of a MBus device.
+type LastCapture struct {
 	Pos lexer.Position `parser:""`
 
-	Value []ListValue `parser:"( @@ ')' '(' )+ @@"`
+	Timestamp *Timestamp   `parser:"@@ ')'"`
+	Value     *Measurement `parser:"'(' @@ ( ?!')' '(' )"`
 }
 
-var _ Value = &List{}
+var _ Value = &LastCapture{}
 
-func (l *List) value()                   {}
-func (l *List) Position() lexer.Position { return l.Pos }
+func (l *LastCapture) value()                      {}
+func (l *LastCapture) Position() lexer.Position    { return l.Pos }
+func (l *LastCapture) children() (children []Node) { return []Node{l.Timestamp, l.Value} }
 
-func (l *List) children() (children []Node) {
-	for _, val := range l.Value {
-		children = append(children, val)
-	}
+// LegacyLastCapture represents the last 5-minute capture of an older MBus device (DSMR v2.2 or v3.0).
+type LegacyLastCapture struct {
+	Pos lexer.Position `parser:""`
 
-	return
+	// We ignore any extraneous values between timestamp and OBIS as specs are unclear about their purpose.
+	Timestamp *String            `parser:"@@ ')' ( '(' ~(')' | OBIS) ')' (?='(') )+ '('"`
+	OBIS      *OBIS              `parser:"@@ ')' '('"`
+	Value     *LegacyMeasurement `parser:"@@"`
 }
 
-// ...
-type ListValue interface {
-	Node
-}
+var _ Value = &LegacyLastCapture{}
+
+func (l *LegacyLastCapture) value()                      {}
+func (l *LegacyLastCapture) Position() lexer.Position    { return l.Pos }
+func (l *LegacyLastCapture) children() (children []Node) { return []Node{l.Timestamp, l.OBIS, l.Value} }
 
 // ...
 type OBIS struct {
@@ -158,7 +163,6 @@ type OBIS struct {
 }
 
 var _ Value = &OBIS{}
-var _ ListValue = &OBIS{}
 
 func (o *OBIS) value()                   {}
 func (o *OBIS) Position() lexer.Position { return o.Pos }
@@ -173,12 +177,29 @@ type Measurement struct {
 }
 
 var _ Value = &Measurement{}
-var _ ListValue = &Measurement{}
 
 func (m *Measurement) value()                   {}
 func (m *Measurement) Position() lexer.Position { return m.Pos }
 
 func (m *Measurement) children() (children []Node) {
+	children = append(children, m.Value, m.Unit)
+	return
+}
+
+// LegacyMeasurement represents a number+unit of a [LegacyLastCapture].
+type LegacyMeasurement struct {
+	Pos lexer.Position `parser:""`
+
+	Unit  *String `parser:"@@ ')' '('"`
+	Value *Number `parser:"@@"`
+}
+
+var _ Value = &LegacyMeasurement{}
+
+func (m *LegacyMeasurement) value()                   {}
+func (m *LegacyMeasurement) Position() lexer.Position { return m.Pos }
+
+func (m *LegacyMeasurement) children() (children []Node) {
 	children = append(children, m.Value, m.Unit)
 	return
 }
@@ -192,7 +213,6 @@ type Timestamp struct {
 }
 
 var _ Value = &Timestamp{}
-var _ ListValue = &Timestamp{}
 
 func (t *Timestamp) value()                   {}
 func (t *Timestamp) Position() lexer.Position { return t.Pos }
@@ -206,7 +226,6 @@ type Number struct {
 }
 
 var _ Value = &Number{}
-var _ ListValue = &Number{}
 
 func (n *Number) value()                   {}
 func (n *Number) Position() lexer.Position { return n.Pos }
@@ -222,7 +241,6 @@ type String struct {
 }
 
 var _ Value = &String{}
-var _ ListValue = &String{}
 
 func (s *String) value()                   {}
 func (s *String) Position() lexer.Position { return s.Pos }
@@ -241,9 +259,8 @@ var (
 	parser = participle.MustBuild[Telegram](
 		participle.Lexer(lex),
 		participle.Elide("EOL"),
-		participle.Union[Value](&EventLog{}, &List{}, &OBIS{}, &Measurement{}, &Timestamp{}, &String{}),
-		participle.Union[ListValue](&OBIS{}, &Measurement{}, &Timestamp{}, &String{}),
-		// We need lookahead to handle list values correctly.
+		participle.Union[Value](&EventLog{}, &LastCapture{}, &LegacyLastCapture{}, &OBIS{}, &Measurement{}, &Timestamp{}, &String{}),
+		// We need lookahead to handle legacy last captures correctly.
 		participle.UseLookahead(4),
 	)
 )

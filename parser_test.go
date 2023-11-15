@@ -57,7 +57,7 @@ func TestParse(t *testing.T) {
 					obj("0-0:96.13.0", nil),
 					obj("0-1:24.1.0", str("3")),
 					obj("0-1:96.1.0", str("000000000000")),
-					obj("0-1:24.3.0", list(str("161107190000"), str("00"), str("60"), str("1"), obis("0-1:24.2.1"), str("m3"), str("00001.001"))),
+					obj("0-1:24.3.0", llc(str("161107190000"), obis("0-1:24.2.1"), lmm("00001.001", "m3"))),
 					obj("0-1:24.4.0", str("1")),
 				},
 				Footer: &Footer{},
@@ -105,7 +105,7 @@ func TestParse(t *testing.T) {
 					obj("0-0:96.13.0", str("303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F")),
 					obj("0-1:96.1.0", str("3232323241424344313233343536373839")),
 					obj("0-1:24.1.0", str("03")),
-					obj("0-1:24.3.0", list(str("090212160000"), str("00"), str("60"), str("1"), obis("0-1:24.2.1"), str("m3"), str("00001.001"))),
+					obj("0-1:24.3.0", llc(str("090212160000"), obis("0-1:24.2.1"), lmm("00001.001", "m3"))),
 					obj("0-1:24.4.0", str("1")),
 				},
 				Footer: &Footer{},
@@ -192,7 +192,7 @@ func TestParse(t *testing.T) {
 					obj("1-0:62.7.0", mm("00.000", "kW")),
 					obj("0-1:24.1.0", str("003")),
 					obj("0-1:96.1.0", str("4819243993373755377509728609491464")),
-					obj("0-1:24.2.1", list(ts("161129200000", false), mm("00981.443", "m3"))),
+					obj("0-1:24.2.1", lc(ts("161129200000", false), mm("00981.443", "m3"))),
 				},
 				Footer: footer("6796"),
 			},
@@ -277,7 +277,7 @@ func TestParse(t *testing.T) {
 					obj("1-0:62.7.0", mm("00.000", "kW")),
 					obj("0-1:24.1.0", str("003")),
 					obj("0-1:96.1.0", str("3232323241424344313233343536373839")),
-					obj("0-1:24.2.1", list(ts("161030020000", true), mm("00000.107", "m3"))),
+					obj("0-1:24.2.1", lc(ts("161030020000", true), mm("00000.107", "m3"))),
 					obj("0-2:24.1.0", str("003")),
 					obj("0-2:96.1.0", nil),
 				},
@@ -352,8 +352,12 @@ func event(ts *Timestamp, v string) *Event {
 	return &Event{Timestamp: ts, Value: mm(v, "s")}
 }
 
-func list(v ...ListValue) *List {
-	return &List{Value: v}
+func lc(ts *Timestamp, v *Measurement) *LastCapture {
+	return &LastCapture{Timestamp: ts, Value: v}
+}
+
+func llc(ts *String, o *OBIS, v *LegacyMeasurement) *LegacyLastCapture {
+	return &LegacyLastCapture{Timestamp: ts, OBIS: o, Value: v}
 }
 
 func obis(v string) *OBIS {
@@ -362,6 +366,10 @@ func obis(v string) *OBIS {
 
 func mm(v string, u string) *Measurement {
 	return &Measurement{Value: num(v), Unit: str(u)}
+}
+
+func lmm(v string, u string) *LegacyMeasurement {
+	return &LegacyMeasurement{Value: num(v), Unit: str(u)}
 }
 
 func ts(v string, dst bool) *Timestamp {
