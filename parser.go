@@ -259,7 +259,7 @@ var (
 	parser = participle.MustBuild[Telegram](
 		participle.Lexer(lex),
 		participle.Elide("EOL"),
-		participle.Union[Value](&EventLog{}, &LastCapture{}, &LegacyLastCapture{}, &OBIS{}, &Measurement{}, &Timestamp{}, &String{}),
+		participle.Union[Value](&EventLog{}, &LastCapture{}, &LegacyLastCapture{}, &Measurement{}, &Timestamp{}, &String{}),
 		// We need lookahead to handle legacy last captures correctly.
 		participle.UseLookahead(4),
 	)
