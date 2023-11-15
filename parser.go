@@ -248,7 +248,7 @@ func (s *String) children() []Node         { return nil }
 
 var (
 	lex = lexer.MustSimple([]lexer.SimpleRule{
-		{"OBIS", `\d{1,2}-\d{1,2}:\d{1,2}\.\d{1,2}\.\d{1,2}`},
+		{"OBIS", `\d-\d:\d{1,2}\.\d{1,2}\.\d{1,2}`},
 		{"Timestamp", `\d{12}`},
 		{"Number", `\d*\.?\d+`},
 		{"Chars", `[[:alnum:]]+`},
