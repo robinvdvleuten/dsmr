@@ -1,4 +1,4 @@
-module github.com/mijnverbruik/dsmr
+module github.com/robinvdvleuten/dsmr
 
 go 1.19
 

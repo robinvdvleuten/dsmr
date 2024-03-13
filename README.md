@@ -2,15 +2,15 @@
 
 A package for parsing Dutch Smart Meter Requirements (DSMR) telegram data.
 
-[![Latest Release](https://img.shields.io/github/release/mijnverbruik/dsmr.svg?style=flat-square)](https://github.com/mijnverbruik/dsmr/releases)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/mijnverbruik/dsmr/test.yml?style=flat-square&branch=main)](https://github.com/mijnverbruik/dsmr/actions?query=workflow%3Atest)
-[![MIT license](https://img.shields.io/github/license/mijnverbruik/dsmr.svg?style=flat-square)](https://github.com/mijnverbruik/dsmr/blob/main/LICENSE)
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/mijnverbruik/dsmr)](https://pkg.go.dev/github.com/mijnverbruik/dsmr)
+[![Latest Release](https://img.shields.io/github/release/robinvdvleuten/dsmr.svg?style=flat-square)](https://github.com/robinvdvleuten/dsmr/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/robinvdvleuten/dsmr/test.yml?style=flat-square&branch=main)](https://github.com/robinvdvleuten/dsmr/actions?query=workflow%3Atest)
+[![MIT license](https://img.shields.io/github/license/robinvdvleuten/dsmr.svg?style=flat-square)](https://github.com/robinvdvleuten/dsmr/blob/main/LICENSE)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/robinvdvleuten/dsmr)](https://pkg.go.dev/github.com/robinvdvleuten/dsmr)
 
 ## Usage
 
 ```go
-import "github.com/mijnverbruik/dsmr"
+import "github.com/robinvdvleuten/dsmr"
 
 raw := "" +
     "/ISk5\\2MT382-1000\r\n" +
@@ -61,15 +61,15 @@ telegram, err := dsmr.ParseString(raw)
 
 Everyone is encouraged to help improve this project. Here are a few ways you can help:
 
-- [Report bugs](https://github.com/mijnverbruik/dsmr/issues)
-- Fix bugs and [submit pull requests](https://github.com/mijnverbruik/dsmr/pulls)
+- [Report bugs](https://github.com/robinvdvleuten/dsmr/issues)
+- Fix bugs and [submit pull requests](https://github.com/robinvdvleuten/dsmr/pulls)
 - Write, clarify, or fix documentation
 - Suggest or add new features
 
 To get started with development:
 
 ```
-git clone https://github.com/mijnverbruik/dsmr.git
+git clone https://github.com/robinvdvleuten/dsmr.git
 cd dsmr
 go test ./...
 ```

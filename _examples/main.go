@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/alecthomas/repr"
-	"github.com/mijnverbruik/dsmr"
+	"github.com/robinvdvleuten/dsmr"
 )
 
 func main() {
