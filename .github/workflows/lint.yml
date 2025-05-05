@@ -18,4 +18,4 @@ jobs:
             grammar.peg.go
       - if: steps.verify-unchanged-grammar.outputs.files_changed == 'true'
         run: echo "::error file=grammar.peg.go::Make sure you regenerate grammar.peg when making any changes" && exit 1
-      - uses: golangci/golangci-lint-action@v6
+      - uses: golangci/golangci-lint-action@v8
