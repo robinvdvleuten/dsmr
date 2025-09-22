@@ -160,7 +160,7 @@ func TestParse(t *testing.T) {
 				Header: header("KFM5KAIFA-METER"),
 				Data: Data{
 					obj("1-3:0.2.8", str("42")),
-					obj("0-0:1.0.0", ts("161113205757", false)),
+					obj("0-0:1.0.0", ts("161113205757", DSTWinter)),
 					obj("0-0:96.1.1", str("3960221976967177082151037881335713")),
 					obj("1-0:1.8.1", mm("001581.123", "kWh")),
 					obj("1-0:1.8.2", mm("001435.706", "kWh")),
@@ -173,9 +173,9 @@ func TestParse(t *testing.T) {
 					obj("0-0:96.7.9", str("00007")),
 					obj("1-0:99.97.0",
 						events("3", "0-0:96.7.19",
-							event(ts("000104180320", false), "0000237126"),
-							event(ts("000101000001", false), "2147583646"),
-							event(ts("000102000003", false), "2317482647"),
+							event(ts("000104180320", DSTWinter), "0000237126"),
+							event(ts("000101000001", DSTWinter), "2147583646"),
+							event(ts("000102000003", DSTWinter), "2317482647"),
 						),
 					),
 					obj("1-0:32.32.0", str("00000")),
@@ -198,7 +198,7 @@ func TestParse(t *testing.T) {
 					mbus(1,
 						obj("0-1:24.1.0", str("003")),
 						obj("0-1:96.1.0", str("4819243993373755377509728609491464")),
-						obj("0-1:24.2.1", lc(ts("161129200000", false), mm("00981.443", "m3"))),
+						obj("0-1:24.2.1", lc(ts("161129200000", DSTWinter), mm("00981.443", "m3"))),
 					),
 				},
 				Footer: footer("6796"),
@@ -251,7 +251,7 @@ func TestParse(t *testing.T) {
 				Header: header("ISk5\\2MT382-1000"),
 				Data: Data{
 					obj("1-3:0.2.8", str("50")),
-					obj("0-0:1.0.0", ts("161030020000", true)),
+					obj("0-0:1.0.0", ts("161030020000", DSTSummer)),
 					obj("0-0:96.1.1", str("4B384547303034303436333935353037")),
 					obj("1-0:1.8.1", mm("000004.426", "kWh")),
 					obj("1-0:1.8.2", mm("000002.399", "kWh")),
@@ -285,7 +285,7 @@ func TestParse(t *testing.T) {
 					mbus(1,
 						obj("0-1:24.1.0", str("003")),
 						obj("0-1:96.1.0", str("3232323241424344313233343536373839")),
-						obj("0-1:24.2.1", lc(ts("161030020000", true), mm("00000.107", "m3"))),
+						obj("0-1:24.2.1", lc(ts("161030020000", DSTSummer), mm("00000.107", "m3"))),
 					),
 					mbus(2,
 						obj("0-2:24.1.0", str("003")),
@@ -343,19 +343,19 @@ func TestParseObject(t *testing.T) {
 		{
 			name:     "timestamp",
 			input:    "0-0:1.0.0(161113205757W)\r\n",
-			expected: obj("0-0:1.0.0", ts("161113205757", false)),
+			expected: obj("0-0:1.0.0", ts("161113205757", DSTWinter)),
 		},
 		{
 			name:     "last capture",
 			input:    "0-1:24.2.1(161129200000W)(00981.443*m3)\r\n",
-			expected: obj("0-1:24.2.1", lc(ts("161129200000", false), mm("00981.443", "m3"))),
+			expected: obj("0-1:24.2.1", lc(ts("161129200000", DSTWinter), mm("00981.443", "m3"))),
 		},
 		{
 			name:  "event log",
 			input: "1-0:99.97.0(1)(0-0:96.7.19)(161107190000S)(00015*s)\r\n",
 			expected: obj(
 				"1-0:99.97.0",
-				events("1", "0-0:96.7.19", event(ts("161107190000", true), "00015")),
+				events("1", "0-0:96.7.19", event(ts("161107190000", DSTSummer), "00015")),
 			),
 		},
 	}
@@ -457,7 +457,7 @@ func lmm(v string, u string) *LegacyMeasurement {
 	return &LegacyMeasurement{Value: num(v), Unit: str(u)}
 }
 
-func ts(v string, dst bool) *Timestamp {
+func ts(v string, dst DSTIndicator) *Timestamp {
 	return &Timestamp{Value: v, DST: dst}
 }
 

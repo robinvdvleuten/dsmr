@@ -162,8 +162,8 @@ func (n *Number) children() []Node         { return nil }
 type Timestamp struct {
 	Pos lexer.Position `parser:""`
 
-	Value string `parser:"@Timestamp"`
-	DST   bool   `parser:"(@'S' | 'W')"`
+	Value string       `parser:"@Timestamp"`
+	DST   DSTIndicator `parser:"@('S' | 'W')"`
 }
 
 var _ Value = &Timestamp{}
@@ -171,6 +171,45 @@ var _ Value = &Timestamp{}
 func (t *Timestamp) value()                   {}
 func (t *Timestamp) Position() lexer.Position { return t.Pos }
 func (t *Timestamp) children() []Node         { return nil }
+
+// IsDST reports whether the timestamp is in daylight saving time (summer time).
+func (t *Timestamp) IsDST() bool {
+	if t == nil {
+		return false
+	}
+	return t.DST.Bool()
+}
+
+// DSTIndicator represents daylight saving time indicator.
+type DSTIndicator int
+
+const (
+	DSTUnknown DSTIndicator = iota
+	DSTWinter
+	DSTSummer
+)
+
+// Capture implements participle capture for DSTIndicator.
+func (d *DSTIndicator) Capture(values []string) error {
+	if len(values) == 0 {
+		*d = DSTUnknown
+		return nil
+	}
+
+	switch values[0] {
+	case "W":
+		*d = DSTWinter
+	case "S":
+		*d = DSTSummer
+	default:
+		return fmt.Errorf("unexpected DST indicator %q", values[0])
+	}
+
+	return nil
+}
+
+// Bool reports whether daylight saving time is active (summer time).
+func (d DSTIndicator) Bool() bool { return d == DSTSummer }
 
 // Measurement represents a number+unit.
 type Measurement struct {
