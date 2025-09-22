@@ -10,6 +10,22 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 )
 
+// Grammar overview (simplified EBNF):
+//
+//	Telegram   = Header Entry* Footer ;
+//	Entry      = Header | Footer | Object | MBusDevice ;
+//	Object     = OBIS "(" Value* ")" ;
+//	MBusDevice = Object { Object }  // same channel, leading OBIS 0-<channel>:*
+//	Value      = EventLog | LastCapture | LegacyLastCapture | Measurement | Timestamp | String ;
+//	EventLog   = Number ")" "(" OBIS ")" Event* ;
+//	Event      = "(" Timestamp ")" "(" Measurement [")"] ;
+//	LastCapture = Timestamp ")" "(" Measurement ;
+//	Measurement = Number "*" String ;
+//	Timestamp  = <12 digit datetime> ["S" | "W"] ;
+//	String     = <any chars except ')' or EOL> ;
+//	Number     = ["+" | "-"] digit+ ["." digit+] ;
+//	Header/Footer tokens reuse String rules for their payloads.
+//
 // Node expresses the common behaviour for every AST node in a telegram.
 type Node interface {
 	Position() lexer.Position
