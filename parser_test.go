@@ -1,6 +1,7 @@
 package dsmr
 
 import (
+	"errors"
 	"math/big"
 	"reflect"
 	"testing"
@@ -297,7 +298,7 @@ func TestParse(t *testing.T) {
 		{
 			name:     "InvalidTelegram",
 			telegram: "invalid_telegram",
-			fail:     "1:1: unexpected token \"invalid\"",
+			fail:     "1:1: parse error: unexpected token \"invalid\"",
 		},
 	}
 
@@ -306,6 +307,11 @@ func TestParse(t *testing.T) {
 			telegram, err := Parse(test.telegram)
 			if test.fail != "" {
 				assert.EqualError(t, err, test.fail)
+				var parseErr *ParseError
+				if errors.As(err, &parseErr) {
+					assert.Equal(t, 1, parseErr.Pos.Line)
+					assert.Equal(t, 1, parseErr.Pos.Column)
+				}
 			} else {
 				normalizeTelegram(telegram)
 

@@ -321,10 +321,41 @@ func Parse(str string, options ...Option) (*Telegram, error) {
 
 	t, err := parser.ParseString("", str)
 	if err != nil {
-		return nil, err
+		return nil, wrapParseError(err)
 	}
 
 	return t, verifyChecksum(t, str, &opts)
+}
+
+func wrapParseError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	if _, ok := err.(*ParseError); ok {
+		return err
+	}
+
+	switch e := err.(type) {
+	case participle.Error:
+		perr := &ParseError{
+			Pos:     e.Position(),
+			Message: e.Message(),
+			Err:     err,
+		}
+		if unexpectedProvider, ok := e.(interface{ Unexpected() string }); ok {
+			perr.Unexpected = unexpectedProvider.Unexpected()
+		}
+		return perr
+	case *lexer.Error:
+		return &ParseError{
+			Pos:     e.Pos,
+			Message: e.Message(),
+			Err:     err,
+		}
+	default:
+		return err
+	}
 }
 
 func parseEntry(lex *lexer.PeekingLexer) (Entry, error) {
@@ -391,6 +422,42 @@ type object struct {
 	OBIS  *OBIS          `parser:"@@"`
 	Value Value          `parser:"'(' @@* ')'"`
 }
+
+// ParseError wraps errors returned by participle with position information and context.
+type ParseError struct {
+	Pos        lexer.Position
+	Message    string
+	Unexpected string
+	Err        error
+}
+
+func (e *ParseError) Error() string {
+	if e == nil {
+		return "<nil>"
+	}
+
+	pos := e.Pos
+	msg := "parse error"
+	if e.Message != "" {
+		msg = fmt.Sprintf("%s: %s", msg, e.Message)
+	}
+
+	if e.Message == "" && e.Err != nil {
+		msg = fmt.Sprintf("%s: %s", msg, e.Err.Error())
+	}
+
+	if e.Unexpected != "" && !strings.Contains(msg, "unexpected") {
+		msg = fmt.Sprintf("%s: unexpected %s", msg, e.Unexpected)
+	}
+
+	if pos.Line > 0 && pos.Column > 0 {
+		return fmt.Sprintf("%d:%d: %s", pos.Line, pos.Column, msg)
+	}
+
+	return msg
+}
+
+func (e *ParseError) Unwrap() error { return e.Err }
 
 func mbusChannel(obis string) (int, bool) {
 	parts := strings.SplitN(obis, ":", 2)
