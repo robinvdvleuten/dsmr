@@ -402,26 +402,27 @@ func wrapParseError(err error) error {
 		return err
 	}
 
-	switch e := err.(type) {
-	case participle.Error:
-		perr := &ParseError{
-			Pos:     e.Position(),
-			Message: e.Message(),
+	if perr, ok := err.(participle.Error); ok {
+		wrapped := &ParseError{
+			Pos:     perr.Position(),
+			Message: perr.Message(),
 			Err:     err,
 		}
-		if unexpectedProvider, ok := e.(interface{ Unexpected() string }); ok {
-			perr.Unexpected = unexpectedProvider.Unexpected()
+		if unexpectedProvider, ok := perr.(interface{ Unexpected() string }); ok {
+			wrapped.Unexpected = unexpectedProvider.Unexpected()
 		}
-		return perr
-	case *lexer.Error:
-		return &ParseError{
-			Pos:     e.Pos,
-			Message: e.Message(),
-			Err:     err,
-		}
-	default:
-		return err
+		return wrapped
 	}
+
+	if lerr, ok := err.(*lexer.Error); ok {
+		return &ParseError{
+			Pos:     lerr.Pos,
+			Message: lerr.Message(),
+			Err:     err,
+		}
+	}
+
+	return err
 }
 
 func parseEntry(lex *lexer.PeekingLexer) (Entry, error) {
