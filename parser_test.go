@@ -42,7 +42,7 @@ func TestParse(t *testing.T) {
 				"!\r\n",
 			expected: &Telegram{
 				Header: header("ISk5\\2MT382-1004"),
-				Data: []*Object{
+				Data: Data{
 					obj("0-0:96.1.1", str("00000000000000")),
 					obj("1-0:1.8.1", mm("00001.001", "kWh")),
 					obj("1-0:1.8.2", mm("00001.001", "kWh")),
@@ -55,10 +55,12 @@ func TestParse(t *testing.T) {
 					obj("0-0:96.3.10", str("1")),
 					obj("0-0:96.13.1", nil),
 					obj("0-0:96.13.0", nil),
-					obj("0-1:24.1.0", str("3")),
-					obj("0-1:96.1.0", str("000000000000")),
-					obj("0-1:24.3.0", llc(str("161107190000"), obis("0-1:24.2.1"), lmm("00001.001", "m3"))),
-					obj("0-1:24.4.0", str("1")),
+					mbus(1,
+						obj("0-1:24.1.0", str("3")),
+						obj("0-1:96.1.0", str("000000000000")),
+						obj("0-1:24.3.0", llc(str("161107190000"), obis("0-1:24.2.1"), lmm("00001.001", "m3"))),
+						obj("0-1:24.4.0", str("1")),
+					),
 				},
 				Footer: &Footer{},
 			},
@@ -90,7 +92,7 @@ func TestParse(t *testing.T) {
 				"!\r\n",
 			expected: &Telegram{
 				Header: header("ISk5\\2MT382-1000"),
-				Data: []*Object{
+				Data: Data{
 					obj("0-0:96.1.1", str("4B384547303034303436333935353037")),
 					obj("1-0:1.8.1", mm("12345.678", "kWh")),
 					obj("1-0:1.8.2", mm("12345.678", "kWh")),
@@ -103,10 +105,12 @@ func TestParse(t *testing.T) {
 					obj("0-0:96.3.10", str("1")),
 					obj("0-0:96.13.1", str("303132333435363738")),
 					obj("0-0:96.13.0", str("303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F")),
-					obj("0-1:96.1.0", str("3232323241424344313233343536373839")),
-					obj("0-1:24.1.0", str("03")),
-					obj("0-1:24.3.0", llc(str("090212160000"), obis("0-1:24.2.1"), lmm("00001.001", "m3"))),
-					obj("0-1:24.4.0", str("1")),
+					mbus(1,
+						obj("0-1:96.1.0", str("3232323241424344313233343536373839")),
+						obj("0-1:24.1.0", str("03")),
+						obj("0-1:24.3.0", llc(str("090212160000"), obis("0-1:24.2.1"), lmm("00001.001", "m3"))),
+						obj("0-1:24.4.0", str("1")),
+					),
 				},
 				Footer: &Footer{},
 			},
@@ -153,7 +157,7 @@ func TestParse(t *testing.T) {
 				"!6796\r\n",
 			expected: &Telegram{
 				Header: header("KFM5KAIFA-METER"),
-				Data: []*Object{
+				Data: Data{
 					obj("1-3:0.2.8", str("42")),
 					obj("0-0:1.0.0", ts("161113205757", false)),
 					obj("0-0:96.1.1", str("3960221976967177082151037881335713")),
@@ -190,9 +194,11 @@ func TestParse(t *testing.T) {
 					obj("1-0:42.7.0", mm("00.000", "kW")),
 					obj("1-0:61.7.0", mm("00.209", "kW")),
 					obj("1-0:62.7.0", mm("00.000", "kW")),
-					obj("0-1:24.1.0", str("003")),
-					obj("0-1:96.1.0", str("4819243993373755377509728609491464")),
-					obj("0-1:24.2.1", lc(ts("161129200000", false), mm("00981.443", "m3"))),
+					mbus(1,
+						obj("0-1:24.1.0", str("003")),
+						obj("0-1:96.1.0", str("4819243993373755377509728609491464")),
+						obj("0-1:24.2.1", lc(ts("161129200000", false), mm("00981.443", "m3"))),
+					),
 				},
 				Footer: footer("6796"),
 			},
@@ -242,7 +248,7 @@ func TestParse(t *testing.T) {
 				"!8397\r\n",
 			expected: &Telegram{
 				Header: header("ISk5\\2MT382-1000"),
-				Data: []*Object{
+				Data: Data{
 					obj("1-3:0.2.8", str("50")),
 					obj("0-0:1.0.0", ts("161030020000", true)),
 					obj("0-0:96.1.1", str("4B384547303034303436333935353037")),
@@ -275,11 +281,15 @@ func TestParse(t *testing.T) {
 					obj("1-0:22.7.0", mm("00.000", "kW")),
 					obj("1-0:42.7.0", mm("00.000", "kW")),
 					obj("1-0:62.7.0", mm("00.000", "kW")),
-					obj("0-1:24.1.0", str("003")),
-					obj("0-1:96.1.0", str("3232323241424344313233343536373839")),
-					obj("0-1:24.2.1", lc(ts("161030020000", true), mm("00000.107", "m3"))),
-					obj("0-2:24.1.0", str("003")),
-					obj("0-2:96.1.0", nil),
+					mbus(1,
+						obj("0-1:24.1.0", str("003")),
+						obj("0-1:96.1.0", str("3232323241424344313233343536373839")),
+						obj("0-1:24.2.1", lc(ts("161030020000", true), mm("00000.107", "m3"))),
+					),
+					mbus(2,
+						obj("0-2:24.1.0", str("003")),
+						obj("0-2:96.1.0", nil),
+					),
 				},
 				Footer: footer("8397"),
 			},
@@ -306,6 +316,71 @@ func TestParse(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestParseObject(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected *Object
+	}{
+		{
+			name:     "measurement",
+			input:    "1-0:1.8.1(00001.001*kWh)\r\n",
+			expected: obj("1-0:1.8.1", mm("00001.001", "kWh")),
+		},
+		{
+			name:     "string",
+			input:    "0-0:96.1.1(ABCDEF1234567890)\r\n",
+			expected: obj("0-0:96.1.1", str("ABCDEF1234567890")),
+		},
+		{
+			name:     "timestamp",
+			input:    "0-0:1.0.0(161113205757W)\r\n",
+			expected: obj("0-0:1.0.0", ts("161113205757", false)),
+		},
+		{
+			name:     "last capture",
+			input:    "0-1:24.2.1(161129200000W)(00981.443*m3)\r\n",
+			expected: obj("0-1:24.2.1", lc(ts("161129200000", false), mm("00981.443", "m3"))),
+		},
+		{
+			name:  "event log",
+			input: "1-0:99.97.0(1)(0-0:96.7.19)(161107190000S)(00015*s)\r\n",
+			expected: obj(
+				"1-0:99.97.0",
+				events("1", "0-0:96.7.19", event(ts("161107190000", true), "00015")),
+			),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			parsed, err := objectParser.ParseString("", test.input)
+			assert.NoError(t, err)
+			if parsed == nil {
+				t.Fatal("expected object")
+			}
+
+			got := normalizeObjectForTest(&Object{OBIS: parsed.OBIS, Value: parsed.Value})
+			expected := normalizeObjectForTest(test.expected)
+
+			assert.Equal(t,
+				repr.String(expected, repr.Indent("  ")),
+				repr.String(got, repr.Indent("  ")))
+		})
+	}
+}
+
+func normalizeObjectForTest(obj *Object) *Object {
+	if obj == nil {
+		return nil
+	}
+
+	obj.Pos = lexer.Position{}
+	normalizeNodes([]Node{obj})
+
+	return obj
 }
 
 func normalizeTelegram(t *Telegram) *Telegram {
@@ -342,6 +417,10 @@ func footer(v string) *Footer {
 
 func obj(o string, v Value) *Object {
 	return &Object{OBIS: obis(o), Value: v}
+}
+
+func mbus(channel int, data ...*Object) *MBusDevice {
+	return &MBusDevice{Channel: channel, Data: data}
 }
 
 func events(c string, o string, v ...*Event) *EventLog {

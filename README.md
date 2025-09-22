@@ -7,6 +7,12 @@ A package for parsing Dutch Smart Meter Requirements (DSMR) telegram data.
 [![MIT license](https://img.shields.io/github/license/robinvdvleuten/dsmr.svg?style=flat-square)](https://github.com/robinvdvleuten/dsmr/blob/main/LICENSE)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/robinvdvleuten/dsmr)](https://pkg.go.dev/github.com/robinvdvleuten/dsmr)
 
+The package focuses on turning raw telegram strings into strongly typed Go
+structures, making it easier to work with smart meter measurements such as
+energy consumption, production, gas readings, and meter metadata. It supports
+common DSMR versions out of the box and hides the boilerplate of dealing with
+checksums, optional fields, and multi-line records.
+
 ## Usage
 
 ```go
@@ -54,8 +60,34 @@ raw := "" +
     "0-2:96.1.0()\r\n" +
     "!6EEE\r\n"
 
-telegram, err := dsmr.ParseString(raw)
+telegram, err := dsmr.Parse(raw)
+if err != nil {
+    // Handle checksum mismatches or invalid telegrams.
+    log.Fatal(err)
+}
+for _, entry := range telegram.Data {
+    switch e := entry.(type) {
+    case *dsmr.Object:
+        switch e.OBIS.Value {
+        case "1-0:1.8.1":
+            if measurement, ok := e.Value.(*dsmr.Measurement); ok {
+                fmt.Printf("Electricity delivered (tariff 1): %s %s\n", measurement.Value, measurement.Unit.Value)
+            }
+        case "0-1:24.2.1":
+            if capture, ok := e.Value.(*dsmr.LastCapture); ok {
+                fmt.Printf("Gas delivered: %s %s\n", capture.Value.Value, capture.Value.Unit.Value)
+            }
+        }
+    case *dsmr.MBusDevice:
+        fmt.Printf("M-Bus channel %d has %d objects\n", e.Channel, len(e.Data))
+    }
+}
 ```
+
+The parser also accepts `io.Reader` inputs via `dsmr.Parse`, which is helpful
+when reading from serial connections or files produced by smart meter
+gateways. See the [`_examples`](./_examples) directory for additional usage
+patterns, including continuous reading from a P1 port.
 
 ## Contributing
 
@@ -73,6 +105,9 @@ git clone https://github.com/robinvdvleuten/dsmr.git
 cd dsmr
 go test ./...
 ```
+
+Before submitting a pull request, please make sure to run
+`go fmt` on any Go source files you touched so the code stays consistent.
 
 Feel free to open an issue to get feedback on your idea before spending too much time on it.
 

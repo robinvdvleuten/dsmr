@@ -1,46 +1,37 @@
 package dsmr
 
 import (
+	"fmt"
 	"math/big"
+	"strconv"
+	"strings"
 
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 )
 
+// Node expresses the common behaviour for every AST node in a telegram.
 type Node interface {
 	Position() lexer.Position
 	children() (children []Node)
 }
 
+// Entry represents the top-level items that can appear in telegram data.
 type Entry interface {
 	Key() string
 	Node
 }
 
-// Data Objects in the root of the AST.
-type Data []*Object
-
-// Struct for telegram data.
-type Telegram struct {
-	Pos lexer.Position `parser:""`
-
-	Header *Header `parser:"@@"`
-	Data   Data    `parser:"@@*"`
-	Footer *Footer `parser:"@@"`
+// Value represents the possible values attached to an OBIS object.
+type Value interface {
+	value()
+	Node
 }
 
-func (t *Telegram) Position() lexer.Position { return t.Pos }
+// Data collects the entries in the body of a telegram.
+type Data []Entry
 
-func (t *Telegram) children() (children []Node) {
-	children = append(children, t.Header, t.Footer)
-
-	for _, obj := range t.Data {
-		children = append(children, obj)
-	}
-
-	return
-}
-
+// Header is the opening line of a telegram.
 type Header struct {
 	Pos lexer.Position `parser:""`
 
@@ -53,6 +44,7 @@ func (h *Header) Key() string              { return "header" }
 func (h *Header) Position() lexer.Position { return h.Pos }
 func (h *Header) children() []Node         { return nil }
 
+// Footer is the closing line of a telegram.
 type Footer struct {
 	Pos lexer.Position `parser:""`
 
@@ -65,8 +57,20 @@ func (f *Footer) Key() string              { return "footer" }
 func (f *Footer) Position() lexer.Position { return f.Pos }
 func (f *Footer) children() []Node         { return nil }
 
-// Object is a COSEM object in the Telegram represented by the
-// OBIS (Object Identification System) and one or more attributes.
+// OBIS holds the identifier of a COSEM object.
+type OBIS struct {
+	Pos lexer.Position `parser:""`
+
+	Value string `parser:"@OBIS"`
+}
+
+var _ Value = &OBIS{}
+
+func (o *OBIS) value()                   {}
+func (o *OBIS) Position() lexer.Position { return o.Pos }
+func (o *OBIS) children() []Node         { return nil }
+
+// Object represents a COSEM object with one or more values.
 type Object struct {
 	Pos lexer.Position `parser:""`
 
@@ -80,93 +84,93 @@ func (o *Object) Key() string              { return o.OBIS.Value }
 func (o *Object) Position() lexer.Position { return o.Pos }
 func (o *Object) children() []Node         { return []Node{o.OBIS, o.Value} }
 
-// Value represents an object value.
-type Value interface {
-	value()
-
-	Node
+// MBusDevice groups OBIS objects that belong to the same M-Bus channel.
+type MBusDevice struct {
+	Pos     lexer.Position
+	Channel int
+	Data    []*Object
 }
 
-// EventLog represents a log of events.
-type EventLog struct {
-	Pos lexer.Position `parser:""`
+var _ Entry = &MBusDevice{}
 
-	Count *Number  `parser:"@@ ')'"`
-	OBIS  *OBIS    `parser:"'(' @@ ( ')' (?='(') )?"`
-	Value []*Event `parser:"@@*"`
-}
+func (m *MBusDevice) Key() string              { return fmt.Sprintf("mbus.%d", m.Channel) }
+func (m *MBusDevice) Position() lexer.Position { return m.Pos }
 
-var _ Value = &EventLog{}
-
-func (e *EventLog) value()                   {}
-func (e *EventLog) Position() lexer.Position { return e.Pos }
-
-func (e *EventLog) children() (children []Node) {
-	children = append(children, e.Count, e.OBIS)
-
-	for _, val := range e.Value {
-		children = append(children, val)
+func (m *MBusDevice) children() (children []Node) {
+	for _, obj := range m.Data {
+		if obj == nil {
+			continue
+		}
+		children = append(children, obj)
 	}
 
 	return
 }
 
-// Event represents a timestamp+duration.
-type Event struct {
+// Telegram is the root node produced for every parsed message.
+type Telegram struct {
 	Pos lexer.Position `parser:""`
 
-	Timestamp *Timestamp   `parser:"'(' @@ ')'"`
-	Value     *Measurement `parser:"'(' @@ ( ')' (?='(') )?"`
+	Header *Header `parser:"@@"`
+	Data   Data    `parser:"@@*"`
+	Footer *Footer `parser:"@@"`
 }
 
-var _ Value = &Event{}
+func (t *Telegram) Position() lexer.Position { return t.Pos }
 
-func (e *Event) value()                      {}
-func (e *Event) Position() lexer.Position    { return e.Pos }
-func (e *Event) children() (children []Node) { return []Node{e.Timestamp, e.Value} }
+func (t *Telegram) children() (children []Node) {
+	children = append(children, t.Header, t.Footer)
 
-// LastCapture represents the last 5-minute capture of a MBus device.
-type LastCapture struct {
+	for _, entry := range t.Data {
+		if entry == nil {
+			continue
+		}
+		children = append(children, entry)
+	}
+
+	return
+}
+
+// String represents a literal string segment.
+type String struct {
 	Pos lexer.Position `parser:""`
 
-	Timestamp *Timestamp   `parser:"@@ ')'"`
-	Value     *Measurement `parser:"'(' @@ ( ?!')' '(' )"`
+	// Also check for `EOL` token so both Header and Footer can use this Value struct as well.
+	Value string `parser:"@(~(')' | EOL)+)"`
 }
 
-var _ Value = &LastCapture{}
+var _ Value = &String{}
 
-func (l *LastCapture) value()                      {}
-func (l *LastCapture) Position() lexer.Position    { return l.Pos }
-func (l *LastCapture) children() (children []Node) { return []Node{l.Timestamp, l.Value} }
+func (s *String) value()                   {}
+func (s *String) Position() lexer.Position { return s.Pos }
+func (s *String) children() []Node         { return nil }
 
-// LegacyLastCapture represents the last 5-minute capture of an older MBus device (DSMR v2.2 or v3.0).
-type LegacyLastCapture struct {
+// Number wraps a numeric literal optionally containing a decimal point.
+type Number struct {
 	Pos lexer.Position `parser:""`
 
-	// We ignore any extraneous values between timestamp and OBIS as specs are unclear about their purpose.
-	Timestamp *String            `parser:"@@ ')' ( '(' ~(')' | OBIS) ')' (?='(') )+ '('"`
-	OBIS      *OBIS              `parser:"@@ ')' '('"`
-	Value     *LegacyMeasurement `parser:"@@"`
+	Value *big.Float `parser:"@Number"`
 }
 
-var _ Value = &LegacyLastCapture{}
+var _ Value = &Number{}
 
-func (l *LegacyLastCapture) value()                      {}
-func (l *LegacyLastCapture) Position() lexer.Position    { return l.Pos }
-func (l *LegacyLastCapture) children() (children []Node) { return []Node{l.Timestamp, l.OBIS, l.Value} }
+func (n *Number) value()                   {}
+func (n *Number) Position() lexer.Position { return n.Pos }
+func (n *Number) children() []Node         { return nil }
 
-// ...
-type OBIS struct {
+// Timestamp represents a timestamp of a date.
+type Timestamp struct {
 	Pos lexer.Position `parser:""`
 
-	Value string `parser:"@OBIS"`
+	Value string `parser:"@Timestamp"`
+	DST   bool   `parser:"(@'S' | 'W')"`
 }
 
-var _ Value = &OBIS{}
+var _ Value = &Timestamp{}
 
-func (o *OBIS) value()                   {}
-func (o *OBIS) Position() lexer.Position { return o.Pos }
-func (o *OBIS) children() []Node         { return nil }
+func (t *Timestamp) value()                   {}
+func (t *Timestamp) Position() lexer.Position { return t.Pos }
+func (t *Timestamp) children() []Node         { return nil }
 
 // Measurement represents a number+unit.
 type Measurement struct {
@@ -204,47 +208,73 @@ func (m *LegacyMeasurement) children() (children []Node) {
 	return
 }
 
-// Timestamp represents a timestamp of a date.
-type Timestamp struct {
+// Event represents a timestamp+duration pair.
+type Event struct {
 	Pos lexer.Position `parser:""`
 
-	Value string `parser:"@Timestamp"`
-	DST   bool   `parser:"(@'S' | 'W')"`
+	Timestamp *Timestamp   `parser:"'(' @@ ')'"`
+	Value     *Measurement `parser:"'(' @@ ( ')' (?='(') )?"`
 }
 
-var _ Value = &Timestamp{}
+var _ Value = &Event{}
 
-func (t *Timestamp) value()                   {}
-func (t *Timestamp) Position() lexer.Position { return t.Pos }
-func (t *Timestamp) children() []Node         { return nil }
+func (e *Event) value()                      {}
+func (e *Event) Position() lexer.Position    { return e.Pos }
+func (e *Event) children() (children []Node) { return []Node{e.Timestamp, e.Value} }
 
-// ...
-type Number struct {
+// EventLog represents a log of events.
+type EventLog struct {
 	Pos lexer.Position `parser:""`
 
-	Value *big.Float `parser:"@Number"`
+	Count *Number  `parser:"@@ ')'"`
+	OBIS  *OBIS    `parser:"'(' @@ ( ')' (?='(') )?"`
+	Value []*Event `parser:"@@*"`
 }
 
-var _ Value = &Number{}
+var _ Value = &EventLog{}
 
-func (n *Number) value()                   {}
-func (n *Number) Position() lexer.Position { return n.Pos }
-func (n *Number) children() []Node         { return nil }
+func (e *EventLog) value()                   {}
+func (e *EventLog) Position() lexer.Position { return e.Pos }
 
-// String literal.
-type String struct {
+func (e *EventLog) children() (children []Node) {
+	children = append(children, e.Count, e.OBIS)
+
+	for _, val := range e.Value {
+		children = append(children, val)
+	}
+
+	return
+}
+
+// LastCapture represents the last 5-minute capture of a MBus device.
+type LastCapture struct {
 	Pos lexer.Position `parser:""`
 
-	// Also check for `EOL` token so both Header and Footer
-	// can use this Value struct as well.
-	Value string `parser:"@(~(')' | EOL)+)"`
+	Timestamp *Timestamp   `parser:"@@ ')'"`
+	Value     *Measurement `parser:"'(' @@ ( ?!')' '(' )"`
 }
 
-var _ Value = &String{}
+var _ Value = &LastCapture{}
 
-func (s *String) value()                   {}
-func (s *String) Position() lexer.Position { return s.Pos }
-func (s *String) children() []Node         { return nil }
+func (l *LastCapture) value()                      {}
+func (l *LastCapture) Position() lexer.Position    { return l.Pos }
+func (l *LastCapture) children() (children []Node) { return []Node{l.Timestamp, l.Value} }
+
+// LegacyLastCapture represents the last 5-minute capture of an older MBus device (DSMR v2.2 or v3.0).
+type LegacyLastCapture struct {
+	Pos lexer.Position `parser:""`
+
+	// We ignore any extraneous values between timestamp and OBIS as specs are unclear about their purpose.
+	Timestamp *String            `parser:"@@ ')' ( '(' ~(')' | OBIS) ')' (?='(') )+ '('"`
+	OBIS      *OBIS              `parser:"@@ ')' '('"`
+	Value     *LegacyMeasurement `parser:"@@"`
+}
+
+var _ Value = &LegacyLastCapture{}
+
+func (l *LegacyLastCapture) value()                      {}
+func (l *LegacyLastCapture) Position() lexer.Position    { return l.Pos }
+func (l *LegacyLastCapture) children() (children []Node) { return []Node{l.Timestamp, l.OBIS, l.Value} }
 
 var (
 	lex = lexer.MustSimple([]lexer.SimpleRule{
@@ -256,11 +286,21 @@ var (
 		{"EOL", `\r\n`},
 	})
 
+	obisToken = lex.Symbols()["OBIS"]
+
 	parser = participle.MustBuild[Telegram](
 		participle.Lexer(lex),
 		participle.Elide("EOL"),
+		participle.ParseTypeWith[Entry](parseEntry),
 		participle.Union[Value](&EventLog{}, &LastCapture{}, &LegacyLastCapture{}, &Measurement{}, &Timestamp{}, &String{}),
 		// We need lookahead to handle legacy last captures correctly.
+		participle.UseLookahead(4),
+	)
+
+	objectParser = participle.MustBuild[object](
+		participle.Lexer(lex),
+		participle.Elide("EOL"),
+		participle.Union[Value](&EventLog{}, &LastCapture{}, &LegacyLastCapture{}, &Measurement{}, &Timestamp{}, &String{}),
 		participle.UseLookahead(4),
 	)
 )
@@ -283,4 +323,93 @@ func Parse(str string, options ...Option) (*Telegram, error) {
 	}
 
 	return t, verifyChecksum(t, str, &opts)
+}
+
+func parseEntry(lex *lexer.PeekingLexer) (Entry, error) {
+	tok := lex.Peek()
+	if tok.Type != obisToken {
+		return nil, participle.NextMatch
+	}
+
+	first, err := parseObject(lex)
+	if err != nil {
+		return nil, err
+	}
+
+	channel, ok := mbusChannel(first.OBIS.Value)
+	if !ok {
+		return first, nil
+	}
+
+	device := &MBusDevice{
+		Pos:     first.Position(),
+		Channel: channel,
+		Data:    []*Object{first},
+	}
+
+	for {
+		nextTok := lex.Peek()
+		if nextTok.Type != obisToken {
+			break
+		}
+
+		checkpoint := lex.MakeCheckpoint()
+		next, err := parseObject(lex)
+		if err != nil {
+			return nil, err
+		}
+
+		nextChannel, ok := mbusChannel(next.OBIS.Value)
+		if !ok || nextChannel != channel {
+			lex.LoadCheckpoint(checkpoint)
+			break
+		}
+
+		device.Data = append(device.Data, next)
+	}
+
+	return device, nil
+}
+
+func parseObject(lex *lexer.PeekingLexer) (*Object, error) {
+	parsed, err := objectParser.ParseFromLexer(lex, participle.AllowTrailing(true))
+	if err != nil {
+		return nil, err
+	}
+
+	return &Object{
+		Pos:   parsed.Pos,
+		OBIS:  parsed.OBIS,
+		Value: parsed.Value,
+	}, nil
+}
+
+type object struct {
+	Pos   lexer.Position `parser:""`
+	OBIS  *OBIS          `parser:"@@"`
+	Value Value          `parser:"'(' @@* ')'"`
+}
+
+func mbusChannel(obis string) (int, bool) {
+	parts := strings.SplitN(obis, ":", 2)
+	if len(parts) != 2 {
+		return 0, false
+	}
+
+	segment := parts[0]
+	components := strings.SplitN(segment, "-", 2)
+	if len(components) != 2 {
+		return 0, false
+	}
+
+	if components[0] != "0" {
+		return 0, false
+	}
+
+	channel, err := strconv.Atoi(components[1])
+	if err != nil || channel <= 0 {
+		return 0, false
+	}
+
+	return channel, true
 }
