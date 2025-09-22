@@ -444,9 +444,11 @@ func parseEntry(lex *lexer.PeekingLexer) (Entry, error) {
 }
 
 func parseObject(lex *lexer.PeekingLexer) (*Object, error) {
+	start := lex.Peek()
+
 	parsed, err := objectParser.ParseFromLexer(lex, participle.AllowTrailing(true))
 	if err != nil {
-		return nil, err
+		return nil, participle.Wrapf(start.Pos, err, "unable to parse OBIS object")
 	}
 
 	return &Object{
