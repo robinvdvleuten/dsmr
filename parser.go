@@ -462,6 +462,62 @@ type object struct {
 	Value Value          `parser:"'(' @@* ')'"`
 }
 
+type obisCapture struct {
+	Value     string
+	Device    int
+	hasDevice bool
+	Channel   int
+}
+
+func (o *obisCapture) Capture(values []string) error {
+	if len(values) == 0 {
+		return fmt.Errorf("missing OBIS value")
+	}
+
+	o.Value = values[0]
+	o.Device = 0
+	o.Channel = 0
+	o.hasDevice = false
+
+	parts := strings.SplitN(o.Value, ":", 2)
+	if len(parts) != 2 {
+		return nil
+	}
+
+	segments := strings.SplitN(parts[0], "-", 2)
+	if len(segments) != 2 {
+		return nil
+	}
+
+	if device, err := strconv.Atoi(segments[0]); err == nil {
+		o.Device = device
+		o.hasDevice = true
+	}
+
+	if channel, err := strconv.Atoi(segments[1]); err == nil {
+		o.Channel = channel
+	}
+
+	return nil
+}
+
+func mbusChannel(obis string) (int, bool) {
+	var captured obisCapture
+	if err := captured.Capture([]string{obis}); err != nil {
+		return 0, false
+	}
+
+	if !captured.hasDevice || captured.Device != 0 {
+		return 0, false
+	}
+
+	if captured.Channel <= 0 {
+		return 0, false
+	}
+
+	return captured.Channel, true
+}
+
 // ParseError wraps errors returned by participle with position information and context.
 type ParseError struct {
 	Pos        lexer.Position
@@ -497,27 +553,3 @@ func (e *ParseError) Error() string {
 }
 
 func (e *ParseError) Unwrap() error { return e.Err }
-
-func mbusChannel(obis string) (int, bool) {
-	parts := strings.SplitN(obis, ":", 2)
-	if len(parts) != 2 {
-		return 0, false
-	}
-
-	segment := parts[0]
-	components := strings.SplitN(segment, "-", 2)
-	if len(components) != 2 {
-		return 0, false
-	}
-
-	if components[0] != "0" {
-		return 0, false
-	}
-
-	channel, err := strconv.Atoi(components[1])
-	if err != nil || channel <= 0 {
-		return 0, false
-	}
-
-	return channel, true
-}
