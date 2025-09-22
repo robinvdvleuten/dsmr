@@ -280,7 +280,7 @@ var (
 	lex = lexer.MustSimple([]lexer.SimpleRule{
 		{"OBIS", `\d-\d:\d{1,2}\.\d{1,2}\.\d{1,2}`},
 		{"Timestamp", `\d{12}`},
-		{"Number", `\d*\.?\d+`},
+		{"Number", `[+-]?(?:\d+(?:\.\d+)?|\.\d+)`},
 		{"Chars", `[[:alnum:]]+`},
 		{"Punct", `[-_!*.\\/()]`},
 		{"EOL", `\r\n`},
