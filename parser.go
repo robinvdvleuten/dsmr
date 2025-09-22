@@ -92,6 +92,9 @@ type Object struct {
 
 	OBIS  *OBIS `parser:"@@"`
 	Value Value `parser:"'(' @@* ')' (?=EOL)"`
+
+	mbusChannel int
+	hasMBus     bool
 }
 
 var _ Entry = &Object{}
@@ -99,6 +102,14 @@ var _ Entry = &Object{}
 func (o *Object) Key() string              { return o.OBIS.Value }
 func (o *Object) Position() lexer.Position { return o.Pos }
 func (o *Object) children() []Node         { return []Node{o.OBIS, o.Value} }
+
+func (o *Object) mbusChannelValue() (int, bool) {
+	if o == nil || !o.hasMBus {
+		return 0, false
+	}
+
+	return o.mbusChannel, true
+}
 
 // MBusDevice groups OBIS objects that belong to the same M-Bus channel.
 type MBusDevice struct {
@@ -424,7 +435,7 @@ func parseEntry(lex *lexer.PeekingLexer) (Entry, error) {
 		return nil, err
 	}
 
-	channel, ok := mbusChannel(first.OBIS.Value)
+	channel, ok := first.mbusChannelValue()
 	if !ok {
 		return first, nil
 	}
@@ -441,14 +452,16 @@ func parseEntry(lex *lexer.PeekingLexer) (Entry, error) {
 			break
 		}
 
-		nextChannel, ok := mbusChannel(nextTok.Value)
-		if !ok || nextChannel != channel {
-			break
-		}
-
+		checkpoint := lex.MakeCheckpoint()
 		nextObj, err := parseObject(lex)
 		if err != nil {
 			return nil, err
+		}
+
+		nextChannel, ok := nextObj.mbusChannelValue()
+		if !ok || nextChannel != channel {
+			lex.LoadCheckpoint(checkpoint)
+			break
 		}
 
 		device.Data = append(device.Data, nextObj)
@@ -465,11 +478,18 @@ func parseObject(lex *lexer.PeekingLexer) (*Object, error) {
 		return nil, participle.Wrapf(start.Pos, err, "unable to parse OBIS object")
 	}
 
-	return &Object{
+	obj := &Object{
 		Pos:   parsed.Pos,
 		OBIS:  parsed.OBIS,
 		Value: parsed.Value,
-	}, nil
+	}
+
+	if channel, ok := mbusChannel(obj.OBIS.Value); ok {
+		obj.mbusChannel = channel
+		obj.hasMBus = true
+	}
+
+	return obj, nil
 }
 
 type object struct {

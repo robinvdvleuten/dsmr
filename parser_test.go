@@ -384,6 +384,8 @@ func normalizeObjectForTest(obj *Object) *Object {
 	}
 
 	obj.Pos = lexer.Position{}
+	obj.mbusChannel = 0
+	obj.hasMBus = false
 	normalizeNodes([]Node{obj})
 
 	return obj
@@ -408,6 +410,11 @@ func normalizeNodes(nodes []Node) {
 
 		rv = reflect.Indirect(rv)
 		rv.FieldByName("Pos").Set(reflect.ValueOf(lexer.Position{}))
+
+		if obj, ok := node.(*Object); ok {
+			obj.mbusChannel = 0
+			obj.hasMBus = false
+		}
 
 		normalizeNodes(node.children())
 	}
