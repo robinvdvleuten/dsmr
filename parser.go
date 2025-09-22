@@ -288,11 +288,13 @@ var (
 
 	obisToken = lex.Symbols()["OBIS"]
 
+	valueUnion = participle.Union[Value](&EventLog{}, &LastCapture{}, &LegacyLastCapture{}, &Measurement{}, &Timestamp{}, &String{})
+
 	parser = participle.MustBuild[Telegram](
 		participle.Lexer(lex),
 		participle.Elide("EOL"),
 		participle.ParseTypeWith[Entry](parseEntry),
-		participle.Union[Value](&EventLog{}, &LastCapture{}, &LegacyLastCapture{}, &Measurement{}, &Timestamp{}, &String{}),
+		valueUnion,
 		// We need lookahead to handle legacy last captures correctly.
 		participle.UseLookahead(4),
 	)
@@ -300,7 +302,7 @@ var (
 	objectParser = participle.MustBuild[object](
 		participle.Lexer(lex),
 		participle.Elide("EOL"),
-		participle.Union[Value](&EventLog{}, &LastCapture{}, &LegacyLastCapture{}, &Measurement{}, &Timestamp{}, &String{}),
+		valueUnion,
 		participle.UseLookahead(4),
 	)
 )
