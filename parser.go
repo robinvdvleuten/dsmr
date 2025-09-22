@@ -441,19 +441,17 @@ func parseEntry(lex *lexer.PeekingLexer) (Entry, error) {
 			break
 		}
 
-		checkpoint := lex.MakeCheckpoint()
-		next, err := parseObject(lex)
+		nextChannel, ok := mbusChannel(nextTok.Value)
+		if !ok || nextChannel != channel {
+			break
+		}
+
+		nextObj, err := parseObject(lex)
 		if err != nil {
 			return nil, err
 		}
 
-		nextChannel, ok := mbusChannel(next.OBIS.Value)
-		if !ok || nextChannel != channel {
-			lex.LoadCheckpoint(checkpoint)
-			break
-		}
-
-		device.Data = append(device.Data, next)
+		device.Data = append(device.Data, nextObj)
 	}
 
 	return device, nil
