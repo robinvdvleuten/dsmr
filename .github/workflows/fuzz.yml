@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: jidicula/go-fuzz-action@0da0c6cbe9f19230f0fa62aad18def16d0d23796
         with:
-          packages: ./parser
+          packages: ./
           fuzz-time: 30s
           fuzz-regexp: FuzzParse$
           fuzz-minimize-time: 1m
@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: jidicula/go-fuzz-action@0da0c6cbe9f19230f0fa62aad18def16d0d23796
         with:
-          packages: ./parser
+          packages: ./
           fuzz-time: 30s
           fuzz-regexp: FuzzParseObject$
           fuzz-minimize-time: 1m
