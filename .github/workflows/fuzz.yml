@@ -1,0 +1,38 @@
+name: Fuzz
+
+on: 
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  fuzz-parse:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: jidicula/go-fuzz-action@0da0c6cbe9f19230f0fa62aad18def16d0d23796
+        with:
+          packages: ./parser
+          fuzz-time: 30s
+          fuzz-regexp: FuzzParse$
+          fuzz-minimize-time: 1m
+          go-version: "1.25"
+  fuzz-parse-object:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: jidicula/go-fuzz-action@0da0c6cbe9f19230f0fa62aad18def16d0d23796
+        with:
+          packages: ./parser
+          fuzz-time: 30s
+          fuzz-regexp: FuzzParseObject$
+          fuzz-minimize-time: 1m
+          go-version: "1.25"
