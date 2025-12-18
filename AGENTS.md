@@ -40,3 +40,9 @@ go build ./...
 
 - Use `github.com/alecthomas/assert/v2` for assertions
 - Test files follow `*_test.go` naming convention
+
+## Additional Resources
+
+- [Effective Go](https://go.dev/doc/effective_go)
+- [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+- [Uber Go Style Guide](https://github.com/uber-go/guide/blob/master/style.md)

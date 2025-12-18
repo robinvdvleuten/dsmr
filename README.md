@@ -65,22 +65,32 @@ if err != nil {
     // Handle checksum mismatches or invalid telegrams.
     log.Fatal(err)
 }
-for _, entry := range telegram.Data {
-    switch e := entry.(type) {
-    case *dsmr.Object:
-        switch e.OBIS.Value {
-        case "1-0:1.8.1":
-            if measurement, ok := e.Value.(*dsmr.Measurement); ok {
-                fmt.Printf("Electricity delivered (tariff 1): %s %s\n", measurement.Value, measurement.Unit.Value)
-            }
-        case "0-1:24.2.1":
-            if capture, ok := e.Value.(*dsmr.LastCapture); ok {
-                fmt.Printf("Gas delivered: %s %s\n", capture.Value.Value, capture.Value.Unit.Value)
-            }
-        }
-    case *dsmr.MBusDevice:
-        fmt.Printf("M-Bus channel %d has %d objects\n", e.Channel, len(e.Data))
-    }
+
+// Use convenience accessors for common readings
+if delivery := telegram.ElectricityDelivered(1); delivery != nil {
+    fmt.Printf("Electricity delivered (tariff 1): %s %s\n", 
+        delivery.Value.Value, delivery.Unit.Value)
+}
+
+if gas := telegram.GasDelivered(); gas != nil {
+    fmt.Printf("Gas delivered: %s %s\n", 
+        gas.Value.Value.Value, gas.Value.Unit.Value)
+}
+
+// Access 3-phase measurements
+if voltageL1 := telegram.VoltageL1(); voltageL1 != nil {
+    fmt.Printf("Voltage L1: %s %s\n", 
+        voltageL1.Value.Value, voltageL1.Unit.Value)
+}
+
+if currentL1 := telegram.CurrentL1(); currentL1 != nil {
+    fmt.Printf("Current L1: %s %s\n", 
+        currentL1.Value.Value, currentL1.Unit.Value)
+}
+
+// Iterate over M-Bus devices
+if mbus := telegram.MBusDevice(1); mbus != nil {
+    fmt.Printf("M-Bus channel %d has %d objects\n", mbus.Channel, len(mbus.Data))
 }
 ```
 
