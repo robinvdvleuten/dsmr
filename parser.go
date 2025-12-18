@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
@@ -356,22 +357,39 @@ var (
 
 	valueUnion = participle.Union[Value](&EventLog{}, &LastCapture{}, &LegacyLastCapture{}, &Measurement{}, &Timestamp{}, &String{})
 
-	parser = participle.MustBuild[Telegram](
-		participle.Lexer(lex),
-		participle.Elide("EOL"),
-		participle.ParseTypeWith[Entry](parseEntry),
-		valueUnion,
-		// We need lookahead to handle legacy last captures correctly.
-		participle.UseLookahead(4),
-	)
-
-	objectParser = participle.MustBuild[object](
-		participle.Lexer(lex),
-		participle.Elide("EOL"),
-		valueUnion,
-		participle.UseLookahead(4),
-	)
+	parserOnce       sync.Once
+	parser           *participle.Parser[Telegram]
+	objectParserOnce sync.Once
+	objectParser     *participle.Parser[object]
 )
+
+// initParser initializes the telegram parser with sync.Once to ensure it's built only once.
+func initParser() *participle.Parser[Telegram] {
+	parserOnce.Do(func() {
+		parser = participle.MustBuild[Telegram](
+			participle.Lexer(lex),
+			participle.Elide("EOL"),
+			participle.ParseTypeWith[Entry](parseEntry),
+			valueUnion,
+			// We need lookahead to handle legacy last captures correctly.
+			participle.UseLookahead(4),
+		)
+	})
+	return parser
+}
+
+// initObjectParser initializes the object parser with sync.Once to ensure it's built only once.
+func initObjectParser() *participle.Parser[object] {
+	objectParserOnce.Do(func() {
+		objectParser = participle.MustBuild[object](
+			participle.Lexer(lex),
+			participle.Elide("EOL"),
+			valueUnion,
+			participle.UseLookahead(4),
+		)
+	})
+	return objectParser
+}
 
 // Parse parses telegram from a string.
 func Parse(str string, options ...Option) (*Telegram, error) {
@@ -385,7 +403,7 @@ func Parse(str string, options ...Option) (*Telegram, error) {
 		}
 	}
 
-	t, err := parser.ParseString("", str)
+	t, err := initParser().ParseString("", str)
 	if err != nil {
 		return nil, wrapParseError(err)
 	}
@@ -474,7 +492,7 @@ func parseEntry(lex *lexer.PeekingLexer) (Entry, error) {
 func parseObject(lex *lexer.PeekingLexer) (*Object, error) {
 	start := lex.Peek()
 
-	parsed, err := objectParser.ParseFromLexer(lex, participle.AllowTrailing(true))
+	parsed, err := initObjectParser().ParseFromLexer(lex, participle.AllowTrailing(true))
 	if err != nil {
 		return nil, participle.Wrapf(start.Pos, err, "unable to parse OBIS object")
 	}
