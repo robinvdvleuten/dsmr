@@ -3,10 +3,10 @@ package dsmr
 import "fmt"
 
 type ChecksumError struct {
-	Unexpected string
-	Expect     string
+	Got  string
+	Want string
 }
 
 func (e *ChecksumError) Error() string {
-	return fmt.Sprintf("unexpected checksum \"%s\" (expected \"%s\")", e.Unexpected, e.Expect)
+	return fmt.Sprintf("unexpected checksum \"%s\" (expected \"%s\")", e.Got, e.Want)
 }

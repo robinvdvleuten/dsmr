@@ -18,7 +18,7 @@ func verifyChecksum(t *Telegram, raw string, opts *parseOptions) error {
 	checksum := fmt.Sprintf("%04X", crc.CalculateCRC(crc.CRC16, []byte(msg+"!")))
 
 	if t.Footer.Value != checksum {
-		return &ChecksumError{Unexpected: checksum, Expect: t.Footer.Value}
+		return &ChecksumError{Got: t.Footer.Value, Want: checksum}
 	}
 
 	return nil
