@@ -94,10 +94,8 @@ if mbus := telegram.MBusDevice(1); mbus != nil {
 }
 ```
 
-The parser also accepts `io.Reader` inputs via `dsmr.Parse`, which is helpful
-when reading from serial connections or files produced by smart meter
-gateways. See the [`_examples`](./_examples) directory for additional usage
-patterns, including continuous reading from a P1 port.
+`dsmr.Parse` accepts raw telegram data as a string. See the [`_examples`](./_examples)
+directory for additional usage patterns.
 
 ## Contributing
 
