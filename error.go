@@ -2,10 +2,6 @@ package dsmr
 
 import "fmt"
 
-type Error interface {
-	error
-}
-
 type ChecksumError struct {
 	Unexpected string
 	Expect     string
