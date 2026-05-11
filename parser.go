@@ -398,9 +398,7 @@ func Parse(str string, options ...Option) (*Telegram, error) {
 	}
 
 	for _, option := range options {
-		if err := option(&opts); err != nil {
-			return nil, err
-		}
+		option(&opts)
 	}
 
 	t, err := initParser().ParseString("", str)
