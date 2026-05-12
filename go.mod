@@ -1,6 +1,6 @@
 module github.com/robinvdvleuten/dsmr
 
-go 1.19
+go 1.25
 
 require (
 	github.com/alecthomas/assert/v2 v2.11.0
