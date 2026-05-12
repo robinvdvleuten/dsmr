@@ -28,7 +28,7 @@ jobs:
           node-version: lts/*
           cache: npm
           cache-dependency-path: assets/package-lock.json
-      - uses: orhun/git-cliff-action@ef60b862f2e01ab6828319499038bb850bcc8d23 # main
+      - uses: orhun/git-cliff-action@61c9254a8bb5d4f3851bcdf50e69f32ddf9eaa76 # main
         id: changelog
         with:
           args: --bump --no-exec --github-repo ${{ github.repository }}
