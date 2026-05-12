@@ -362,7 +362,7 @@ func TestParseObject(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			parsed, err := objectParser.ParseString("", test.input)
+			parsed, err := initObjectParser().ParseString("", test.input)
 			assert.NoError(t, err)
 			if parsed == nil {
 				t.Fatal("expected object")
