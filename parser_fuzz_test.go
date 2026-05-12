@@ -19,7 +19,7 @@ func FuzzParse(f *testing.F) {
 
 func FuzzParseObject(f *testing.F) {
 	f.Fuzz(func(t *testing.T, data []byte) {
-		parsed, err := objectParser.ParseString("", string(data))
+		parsed, err := initObjectParser().ParseString("", string(data))
 		if err != nil {
 			return
 		}
