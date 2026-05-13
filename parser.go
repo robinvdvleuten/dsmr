@@ -3,6 +3,7 @@ package dsmr
 import (
 	"fmt"
 	"math/big"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -175,9 +176,10 @@ func (s *String) children() []Node         { return nil }
 
 // Number wraps a numeric literal optionally containing a decimal point.
 type Number struct {
-	Pos lexer.Position `parser:""`
+	Pos lexer.Position
 
-	Value *big.Float `parser:"@Number"`
+	Value *big.Float
+	Text  string
 }
 
 var _ Value = &Number{}
@@ -185,6 +187,64 @@ var _ Value = &Number{}
 func (n *Number) value()                   {}
 func (n *Number) Position() lexer.Position { return n.Pos }
 func (n *Number) children() []Node         { return nil }
+
+func (n *Number) Parse(lex *lexer.PeekingLexer) error {
+	tok := lex.Peek()
+	if tok.Type != numberToken {
+		return participle.NextMatch
+	}
+
+	lex.Next()
+	parsed, err := parseNumber(tok.Value)
+	if err != nil {
+		return participle.Wrapf(tok.Pos, err, "invalid number")
+	}
+
+	n.Pos = tok.Pos
+	n.Text = tok.Value
+	n.Value = parsed
+	return nil
+}
+
+func (n *Number) String() string {
+	if n == nil {
+		return ""
+	}
+	if n.Text != "" {
+		return n.Text
+	}
+	if n.Value == nil {
+		return ""
+	}
+	return n.Value.Text('f', -1)
+}
+
+var numberRE = regexp.MustCompile(`^` + numberPattern + `$`)
+
+// NewNumber creates a Number from its DSMR text representation.
+func NewNumber(text string) (*Number, error) {
+	if !numberRE.MatchString(text) {
+		return nil, fmt.Errorf("invalid number %q", text)
+	}
+
+	value, err := parseNumber(text)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Number{
+		Value: value,
+		Text:  text,
+	}, nil
+}
+
+func parseNumber(text string) (*big.Float, error) {
+	value := &big.Float{}
+	if _, _, err := value.Parse(text, 10); err != nil {
+		return nil, err
+	}
+	return value, nil
+}
 
 // Timestamp represents a timestamp of a date.
 type Timestamp struct {
@@ -331,29 +391,49 @@ func (l *LastCapture) children() (children []Node) { return []Node{l.Timestamp, 
 type LegacyLastCapture struct {
 	Pos lexer.Position `parser:""`
 
-	// We ignore any extraneous values between timestamp and OBIS as specs are unclear about their purpose.
-	Timestamp *String            `parser:"@@ ')' ( '(' ~(')' | OBIS) ')' (?='(') )+ '('"`
+	Timestamp *String            `parser:"@@ ')'"`
+	Extra     []*LegacyValue     `parser:"( '(' @@ ')' (?='(') )* '('"`
 	OBIS      *OBIS              `parser:"@@ ')' '('"`
 	Value     *LegacyMeasurement `parser:"@@"`
 }
 
 var _ Value = &LegacyLastCapture{}
 
-func (l *LegacyLastCapture) value()                      {}
-func (l *LegacyLastCapture) Position() lexer.Position    { return l.Pos }
-func (l *LegacyLastCapture) children() (children []Node) { return []Node{l.Timestamp, l.OBIS, l.Value} }
+func (l *LegacyLastCapture) value()                   {}
+func (l *LegacyLastCapture) Position() lexer.Position { return l.Pos }
+func (l *LegacyLastCapture) children() (children []Node) {
+	children = append(children, l.Timestamp)
+	for _, extra := range l.Extra {
+		children = append(children, extra)
+	}
+	children = append(children, l.OBIS, l.Value)
+	return
+}
+
+// LegacyValue represents an extra legacy M-Bus capture value.
+type LegacyValue struct {
+	Pos lexer.Position `parser:""`
+
+	Value string `parser:"@~(')' | OBIS)+"`
+}
+
+func (l *LegacyValue) Position() lexer.Position { return l.Pos }
+func (l *LegacyValue) children() []Node         { return nil }
 
 var (
+	numberPattern = `[+-]?(?:\d+(?:\.\d+)?|\.\d+)`
+
 	lex = lexer.MustSimple([]lexer.SimpleRule{
-		{"OBIS", `\d-\d:\d{1,2}\.\d{1,2}\.\d{1,2}`},
-		{"Timestamp", `\d{12}`},
-		{"Number", `[+-]?(?:\d+(?:\.\d+)?|\.\d+)`},
-		{"Chars", `[[:alnum:]]+`},
-		{"Punct", `[-_!*.\\/()]`},
-		{"EOL", `\r\n`},
+		{Name: "OBIS", Pattern: `\d-\d:\d{1,2}\.\d{1,2}\.\d{1,2}`},
+		{Name: "Timestamp", Pattern: `\d{12}`},
+		{Name: "Number", Pattern: numberPattern},
+		{Name: "Chars", Pattern: `[[:alnum:]]+`},
+		{Name: "Punct", Pattern: `[-_!*.\\/()]`},
+		{Name: "EOL", Pattern: `\r\n`},
 	})
 
-	obisToken = lex.Symbols()["OBIS"]
+	obisToken   = lex.Symbols()["OBIS"]
+	numberToken = lex.Symbols()["Number"]
 
 	valueUnion = participle.Union[Value](&EventLog{}, &LastCapture{}, &LegacyLastCapture{}, &Measurement{}, &Timestamp{}, &String{})
 

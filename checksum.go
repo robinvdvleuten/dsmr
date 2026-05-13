@@ -15,11 +15,23 @@ func verifyChecksum(t *Telegram, raw string, opts *parseOptions) error {
 
 	// Compute expected checksum from original message (including the "!" character).
 	msg, _, _ := strings.Cut(raw, "!")
-	checksum := fmt.Sprintf("%04X", crc.CalculateCRC(crc.CRC16, []byte(msg+"!")))
+	want := crc16(msg + "!")
 
-	if t.Footer.Value != checksum {
-		return &ChecksumError{Got: t.Footer.Value, Want: checksum}
+	if t.Footer.Value != want {
+		return &ChecksumError{Got: t.Footer.Value, Want: want}
 	}
 
 	return nil
+}
+
+func (t *Telegram) checksum() (string, error) {
+	var b strings.Builder
+	if err := t.appendPayload(&b); err != nil {
+		return "", err
+	}
+	return crc16(b.String()), nil
+}
+
+func crc16(msg string) string {
+	return fmt.Sprintf("%04X", crc.CalculateCRC(crc.CRC16, []byte(msg)))
 }
