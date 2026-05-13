@@ -59,7 +59,7 @@ func TestParse(t *testing.T) {
 					mbus(1,
 						obj("0-1:24.1.0", str("3")),
 						obj("0-1:96.1.0", str("000000000000")),
-						obj("0-1:24.3.0", llc(str("161107190000"), obis("0-1:24.2.1"), lmm("00001.001", "m3"))),
+						obj("0-1:24.3.0", llc(str("161107190000"), obis("0-1:24.2.1"), lmm("00001.001", "m3"), "00", "60", "1")),
 						obj("0-1:24.4.0", str("1")),
 					),
 				},
@@ -109,7 +109,7 @@ func TestParse(t *testing.T) {
 					mbus(1,
 						obj("0-1:96.1.0", str("3232323241424344313233343536373839")),
 						obj("0-1:24.1.0", str("03")),
-						obj("0-1:24.3.0", llc(str("090212160000"), obis("0-1:24.2.1"), lmm("00001.001", "m3"))),
+						obj("0-1:24.3.0", llc(str("090212160000"), obis("0-1:24.2.1"), lmm("00001.001", "m3"), "00", "60", "1")),
 						obj("0-1:24.4.0", str("1")),
 					),
 				},
@@ -448,8 +448,12 @@ func lc(ts *Timestamp, v *Measurement) *LastCapture {
 	return &LastCapture{Timestamp: ts, Value: v}
 }
 
-func llc(ts *String, o *OBIS, v *LegacyMeasurement) *LegacyLastCapture {
-	return &LegacyLastCapture{Timestamp: ts, OBIS: o, Value: v}
+func llc(ts *String, o *OBIS, v *LegacyMeasurement, extras ...string) *LegacyLastCapture {
+	capture := &LegacyLastCapture{Timestamp: ts, OBIS: o, Value: v}
+	for _, extra := range extras {
+		capture.Extra = append(capture.Extra, &LegacyValue{Value: extra})
+	}
+	return capture
 }
 
 func obis(v string) *OBIS {
@@ -472,7 +476,7 @@ func num(v string) *Number {
 	b := &big.Float{}
 	_, _, _ = b.Parse(v, 0)
 
-	return &Number{Value: b}
+	return &Number{Value: b, Text: v}
 }
 
 func str(v string) *String {

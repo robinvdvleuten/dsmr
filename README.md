@@ -97,6 +97,36 @@ if mbus := telegram.MBusDevice(1); mbus != nil {
 `dsmr.Parse` accepts raw telegram data as a string. See the [`_examples`](./_examples)
 directory for additional usage patterns.
 
+## Serialization
+
+Telegrams can also be constructed and serialized back to DSMR text. The checksum
+is recalculated when marshaling.
+
+```go
+amount, err := dsmr.NewNumber("000004.426")
+if err != nil {
+    log.Fatal(err)
+}
+
+telegram := &dsmr.Telegram{
+    Header: &dsmr.Header{Value: "ISk5\\2MT382-1000"},
+    Data: dsmr.Data{
+        &dsmr.Object{
+            OBIS:  &dsmr.OBIS{Value: "1-0:1.8.1"},
+            Value: &dsmr.Measurement{Value: amount, Unit: &dsmr.String{Value: "kWh"}},
+        },
+    },
+}
+
+raw, err := telegram.MarshalText()
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+`telegram.String()` is also available when the telegram is already known to be
+valid.
+
 ## Contributing
 
 Everyone is encouraged to help improve this project. Here are a few ways you can help:
