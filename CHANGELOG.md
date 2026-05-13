@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0](https://github.com/robinvdvleuten/dsmr/compare/v0.5.0...v0.6.0) (2026-05-13)
+
+
+### Features
+
+* add telegram text marshaling ([#51](https://github.com/robinvdvleuten/dsmr/issues/51)) ([e9f628a](https://github.com/robinvdvleuten/dsmr/commit/e9f628a0c92608249bc458805ff792ab3076d68a))
+* **api:** add convenience accessors for common DSMR fields ([a508f34](https://github.com/robinvdvleuten/dsmr/commit/a508f34fd5985a12369af878487343a43b1ac3f5))
+* **deps:** Bump github.com/alecthomas/repr from 0.4.0 to 0.5.2 ([#37](https://github.com/robinvdvleuten/dsmr/issues/37)) ([4d7dbc9](https://github.com/robinvdvleuten/dsmr/commit/4d7dbc902d73558b975510ee73efe229d5e0f038))
+
+
+### Performance Improvements
+
+* implement lazy initialization of participle parsers with sync.Once ([f0e2253](https://github.com/robinvdvleuten/dsmr/commit/f0e225301c3c89a30fda843ecd828bb42f56a709))
+
 ## [0.5.0](https://github.com/robinvdvleuten/dsmr/compare/v0.4.0..v0.5.0) - 2025-09-22
 
 ### Features
@@ -71,4 +85,3 @@ All notable changes to this project will be documented in this file.
 ## [0.1.0] - 2023-07-27
 
 - Initial commit - ([2ed3459](https://github.com/robinvdvleuten/dsmr/commit/2ed3459a254ee803c4a3c2c7726bb8f26715c93a))
-
